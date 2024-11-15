@@ -8,26 +8,5 @@
 
 3. **Parallel Data Processing (Optimizations)**: To speed up the processing of the course entries I used `lru_cache` to not process any possible duplicate URLs, used multithreading (since it's I/O bound--network requests--I don't think it's my CPU slowing things down), with 16 worker threads in `ThreadPoolExecutor` which made the entire 11,961 site scrape take less than a second.
 
-## Data Preprocessing and Processing
-- Outline the steps taken to preprocess and clean the scraped data.
-- Discuss any data transformation or normalization techniques used.
-- Explain how the processed data was prepared for further analysis.
-
-## Analysis and Visualization
-- Describe the analysis techniques applied to the processed data.
-- Discuss any statistical or machine learning models used.
-- Present the results of the analysis in a clear and concise manner.
-- Include visualizations to support the findings.
-
-## Deployment
-- Explain how the project/site was deployed.
-- Discuss the hosting platform or server used.
-- Provide instructions for accessing and using the deployed project/site.
-
-## Conclusion
-- Summarize the key findings and insights from the project.
-- Reflect on the overall process and lessons learned.
-- Mention any future improvements or enhancements that can be made.
-
-## References
-- List any external resources or references used in the project.
+## Data Processing/Exploration(?)
+1. **Potential Issues**: Here are some issues I considered I might run into--what if multiple instructors have the same name? I 
