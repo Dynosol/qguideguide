@@ -9,4 +9,8 @@
 3. **Parallel Data Processing (Optimizations)**: To speed up the processing of the course entries I used `lru_cache` to not process any possible duplicate URLs, used multithreading (since it's I/O bound--network requests--I don't think it's my CPU slowing things down), with 16 worker threads in `ThreadPoolExecutor` which made the entire 11,961 site scrape take less than a second.
 
 ## Data Processing/Exploration(?)
-1. **Potential Issues**: Here are some issues I considered I might run into--what if multiple instructors have the same name? I 
+1. **Potential Issues**: Here are some issues I considered I might run into / did run into:
+- Instructors having the same name / names that aren't just two words
+
+## Website Creation
+1. 

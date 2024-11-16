@@ -3,4 +3,10 @@ new_course_data.json
 course_data.json
 old_course_data.json
 scraping_materials/old_course_data.json
-./scraping_material/old_course_data.json
+./scraping_material/old_course_data.jsonvenv/
+venv/
+./qguideguide_backend/venv/
+./core/venv
+venv/
+./qguideguide_backend/course_data.json
+./qguideguide_backend/courses/static/course_data.json
