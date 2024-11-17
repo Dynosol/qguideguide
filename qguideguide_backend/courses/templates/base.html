@@ -10,20 +10,10 @@
 </head>
 
 <body>
-  <nav>
-    <div class="nav-container">
-      <div class="logo">
-        <span>QGuide</span>
-      </div>
-      <ul class="nav-links">
-        <li><a href="{% url 'landing_page' %}">Home</a></li>
-        <li><a href="#">Professor Search</a></li>
-        <li><a href="#">About</a></li>
-      </ul>
-    </div>
-  </nav>
+  {% include 'partials/nav.html' %}
   <div class="content">
     {% block content %}
+    {% include 'partials/course_table.html' %}
     {% endblock %}
   </div>
 </body>
