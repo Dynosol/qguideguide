@@ -10,3 +10,5 @@ venv/
 venv/
 ./qguideguide_backend/course_data.json
 ./qguideguide_backend/courses/static/course_data.json
+db.sqlite3
+./qguideguide_backend/db.sqlite3
