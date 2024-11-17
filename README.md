@@ -11,6 +11,8 @@
 ## Data Processing/Exploration(?)
 1. **Potential Issues**: Here are some issues I considered I might run into / did run into:
 - Instructors having the same name / names that aren't just two words
+- Changed the table names to literals vs. just numbered table names, which fucked things up for data extraction
+- 
 
 ## Website Creation
-1. 
+1. it's slow. slow to show all data and calculate it all... how to make this faster?
