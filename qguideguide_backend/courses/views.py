@@ -5,7 +5,7 @@ from .serializers import CourseSerializer
 
 def landing_page(request):
     courses = Course.objects.all()
-    return render(request, 'landing.html', {'courses': courses})
+    return render(request, 'base.html', {'courses': courses})
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
