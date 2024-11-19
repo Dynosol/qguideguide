@@ -13,3 +13,5 @@ venv/
 db.sqlite3
 ./qguideguide_backend/db.sqlite3
 ./core/settings.py
+.env
+./qguideguide_backend/.env

@@ -17,3 +17,6 @@
 
 ## Website Creation
 1. it's slow. slow to show all data and calculate it all... how to make this faster? --> answer: use 
+- CSP protections for the contact page
+- ended up using a django tables library to avoid the headache of sorting and filtering etc.
+- bootstrap formatting

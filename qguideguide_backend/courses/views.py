@@ -5,7 +5,6 @@ from .serializers import CourseSerializer
 
 def courses_list(request):
     courses = Course.objects.all()
-    print(courses)
     return render(request, 'courses.html', {'courses': courses})
 
 class CourseViewSet(viewsets.ModelViewSet):

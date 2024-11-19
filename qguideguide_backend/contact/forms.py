@@ -1,6 +1,6 @@
 from django import forms
 from .models import ContactMessage
-from captcha.fields import ReCaptchaField
+from django_recaptcha.fields import ReCaptchaField
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 

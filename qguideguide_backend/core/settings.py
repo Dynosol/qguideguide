@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-x&04q$q*oo(^1+#%xv-ou!y607p@_h&pc$h6&8)u%^rk%+7=&o'
-RECAPTCHA_PUBLIC_KEY = 'your_public_key_here'
-RECAPTCHA_PRIVATE_KEY = 'your_secret_key_here'
+SECRET_KEY = config('SECRET_KEY')
+RECAPTCHA_PUBLIC_KEY = config('RECAPTCHA_PUBLIC_KEY')
+RECAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'core',
     'contact',
     'csp',
+    'django_recaptcha',
 ]
 
 REST_FRAMEWORK = {
@@ -148,6 +149,25 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/")
-CSP_FRAME_SRC = ("https://www.google.com/recaptcha/",)
+CSP_DEFAULT_SRC = ("'self'",)  # Default rule for all content
+CSP_SCRIPT_SRC = (
+    "'self'",
+    "https://code.jquery.com",
+    "https://cdnjs.cloudflare.com",
+    "https://cdn.datatables.net",
+    "https://www.google.com/recaptcha/",
+    "https://www.gstatic.com/recaptcha/",
+)
+CSP_STYLE_SRC = (
+    "'self'",
+    "https://cdnjs.cloudflare.com",
+    "https://cdn.datatables.net",
+)
+CSP_STYLE_SRC_ELEM = (
+    "'self'",
+    "https://cdnjs.cloudflare.com",
+    "https://cdn.datatables.net",
+)
+CSP_IMG_SRC = ("'self'", "data:")
+CSP_FONT_SRC = ("'self'", "https://cdnjs.cloudflare.com")
+CSP_INCLUDE_NONCE_IN = ['script-src']
