@@ -16,10 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from courses.views import landing_page
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', landing_page, name='landing_page'),
-    path('courses/', include('courses.urls')),
+    path('', include('courses.urls')),  # Include the courses app URLs
+    path('about', include('courses.urls')), # I'm too lazy to make another app component
 ]

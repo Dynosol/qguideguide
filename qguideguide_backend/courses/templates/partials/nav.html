@@ -1,14 +1,18 @@
 {% load static %}
 
+<link rel="stylesheet" href="{% static 'css/nav.css' %}">
+
 <nav>
-  <div class="nav-container">
-    <div class="logo">
-      <span>QGuideGuide</span>
+    <div class="nav-container">
+        <div id="logo" class="logo" data-url="{% url 'landing_page' %}">
+            <span>QGuideGuide</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="{% url 'landing_page' %}">Home</a></li>
+            <li><a href="#">Professor Rankings</a></li>
+            <li><a href="{% url 'about' %}">About</a></li>
+        </ul>
     </div>
-    <ul class="nav-links">
-      <li><a href="{% url 'landing_page' %}">Home</a></li>
-      <li><a href="#">Professor Search</a></li>
-      <li><a href="#">About</a></li>
-    </ul>
-  </div>
 </nav>
+
+<script src="{% static 'js/nav.js' %}"></script>

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Courses Table</title>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/css/bootstrap.css">
+    <link rel="stylesheet" href="//cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12">
+                <table id="courses" class="table table-striped table-bordered" style="width:100%"
+                    data-server-side="true" data-ajax="/api/courses/?format=datatables">
+                    <thead>
+                        <tr>
+                            <th data-data="title">Title</th>
+                            <th data-data="department">Department</th>
+                            <th data-data="instructor.name">Instructor</th>
+                            <th data-data="term">Term</th>
+                            <th data-data="students_enrolled">Students Enrolled</th>
+                            <th data-data="response_count">Response Count</th>
+                            <th data-data="response_rate">Response Rate</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script src="//code.jquery.com/jquery-1.12.4.js"></script>
+    <script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+    <script src="//cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#courses').DataTable();
+        });
+    </script>
+</body>
+
+</html>
