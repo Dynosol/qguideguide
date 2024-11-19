@@ -4,13 +4,14 @@
 
 <nav>
     <div class="nav-container">
-        <div id="logo" class="logo" data-url="{% url 'landing_page' %}">
+        <div id="logo" class="logo" data-url="{% url 'courses_list' %}">
             <span>QGuideGuide</span>
         </div>
         <ul class="nav-links">
-            <li><a href="{% url 'landing_page' %}">Home</a></li>
+            <li><a href="{% url 'courses_list' %}">Courses</a></li>
             <li><a href="#">Professor Rankings</a></li>
             <li><a href="{% url 'about' %}">About</a></li>
+            <li><a href="{% url 'contact' %}">Contact</a></li>
         </ul>
     </div>
 </nav>

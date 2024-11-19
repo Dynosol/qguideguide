@@ -1,36 +1,30 @@
-document.querySelectorAll('.course-table th').forEach(header => {
-    header.addEventListener('click', () => {
-        const table = header.closest('table');
-        const tbody = table.querySelector('tbody');
-        const index = Array.from(header.parentNode.children).indexOf(header);
-        const isAscending = header.classList.contains('asc');
-
-        // Remove active class from all headers
-        document.querySelectorAll('.course-table th').forEach(th => th.classList.remove('active', 'asc', 'desc'));
-
-        // Add active class to the clicked header
-        header.classList.add('active');
-        header.classList.toggle('asc', !isAscending);
-        header.classList.toggle('desc', isAscending);
-
-        // Sort rows
-        const rows = Array.from(tbody.querySelectorAll('tr'));
-        rows.sort((rowA, rowB) => {
-            const cellA = rowA.children[index].textContent.trim();
-            const cellB = rowB.children[index].textContent.trim();
-
-            // Check if the column is numeric and parse as float
-            const numA = parseFloat(cellA);
-            const numB = parseFloat(cellB);
-
-            if (!isNaN(numA) && !isNaN(numB)) {
-                return isAscending ? numA - numB : numB - numA;
-            } else {
-                return isAscending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
-            }
-        });
-
-        // Append sorted rows to tbody
-        rows.forEach(row => tbody.appendChild(row));
+$(document).ready(function () {
+    // Initialize DataTables with server-side processing
+    $('#courses').DataTable({
+        'serverSide': true,           // Use server-side processing
+        'processing': true,           // Show a processing indicator while fetching data
+        'ajax': {
+            'url': '/api/?format=datatables', // The API endpoint URL
+            'type': 'GET'             // Use GET method for the AJAX request
+        },
+        'lengthMenu': [
+            [10, 25, 50, 100, 200, 500, 1000, -1],
+            [10, 25, 50, 100, 200, 500, 1000, 'Show all']
+        ],
+        'order': [], // Disable initial automatic sorting
+        'columns': [
+            {'data': 'title'},
+            {'data': 'department'},
+            {'data': 'instructor.name'}, // Accessing nested serializer field 'instructor.name'
+            {'data': 'term'},
+            {'data': 'students_enrolled'},
+            {'data': 'response_count'},
+            {'data': 'response_rate'}
+        ],
+        'error': function(xhr, error, thrown) {
+            console.error("DataTables Error: ", error);
+            console.error("Thrown Error: ", thrown);
+            console.error("Response: ", xhr.responseText);
+        }
     });
 });

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Courses Table{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <table id="courses" class="table table-striped table-bordered course-table" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Department</th>
+                        <th>Instructor</th>
+                        <th>Term</th>
+                        <th>Students Enrolled</th>
+                        <th>Response Count</th>
+                        <th>Response Rate</th>
+                    </tr>
+                </thead>
+                <!-- Dynamic rows go here -->
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script src="//code.jquery.com/jquery-1.12.4.js"></script>
+<script src="//cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+<script src="//cdn.datatables.net/1.10.16/js/dataTables.bootstrap4.min.js"></script>
+<script src="{% static 'js/course_table.js' %}"></script>
+
+{% endblock %}

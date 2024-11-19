@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'about',
     'core',
+    'contact',
 ]
 
 REST_FRAMEWORK = {
