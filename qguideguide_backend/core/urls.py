@@ -20,5 +20,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('courses.urls')),  # Include the courses app URLs
-    path('about', include('courses.urls')), # I'm too lazy to make another app component
+    path('about/', include('about.urls')),
 ]

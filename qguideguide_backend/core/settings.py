@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'courses',
     'rest_framework_datatables',
     'rest_framework',
+    'about',
+    'core',
 ]
 
 REST_FRAMEWORK = {
@@ -71,7 +73,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
