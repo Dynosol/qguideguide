@@ -22,6 +22,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-x&04q$q*oo(^1+#%xv-ou!y607p@_h&pc$h6&8)u%^rk%+7=&o'
+RECAPTCHA_PUBLIC_KEY = 'your_public_key_here'
+RECAPTCHA_PRIVATE_KEY = 'your_secret_key_here'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -44,6 +46,7 @@ INSTALLED_APPS = [
     'about',
     'core',
     'contact',
+    'csp',
 ]
 
 REST_FRAMEWORK = {
@@ -67,6 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -142,3 +146,8 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/")
+CSP_FRAME_SRC = ("https://www.google.com/recaptcha/",)

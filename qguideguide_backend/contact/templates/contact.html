@@ -10,40 +10,39 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-md-10 col-sm-12">
-            <div class="card shadow-lg"> <!-- Card with rounded corners and shadow -->
+            <div class="card shadow-lg border-0 rounded-4">
                 <div class="card-body p-5">
-                    <h1 class="card-title text-center mb-4">Contact Me</h1>
-                    <p class="contact-description text-center">Let me know if there's any bugs or if you just want to
-                        say hi</p>
+                    <h1 class="card-title text-center mb-4" style="color: #343a40;">Contact Me</h1>
+                    <p class="text-center" style="color: #6c757d;">Let me know if there's any bugs or if you just want
+                        to say hi</p>
                     <form method="post" novalidate>
                         {% csrf_token %}
 
                         <!-- Form fields styled using Bootstrap -->
                         <div class="mb-3">
-                            <input type="text" name="name" class="form-control" placeholder="Your Name" required
-                                id="id_name">
+                            <input type="text" name="name" class="form-control rounded-3" placeholder="Your Name"
+                                required id="id_name">
                         </div>
                         <div class="mb-3">
-                            <input type="email" name="email" class="form-control" placeholder="Your Email" required
-                                id="id_email">
+                            <input type="email" name="email" class="form-control rounded-3" placeholder="Your Email"
+                                required id="id_email">
                         </div>
                         <div class="mb-3">
-                            <input type="text" name="subject" class="form-control" placeholder="Subject" required
-                                id="id_subject">
+                            <textarea name="message" class="form-control rounded-3" rows="5" placeholder="Your Message"
+                                required id="id_message"></textarea>
                         </div>
                         <div class="mb-3">
-                            <textarea name="message" class="form-control" rows="5" placeholder="Your Message" required
-                                id="id_message"></textarea>
+                            {{ form.captcha }}
                         </div>
 
                         <div class="text-center">
-                            <button type="submit" class="btn btn-dark mt-3">Send Message</button>
+                            <button type="submit" class="btn btn-dark mt-3 px-5 rounded-3">Send Message</button>
                         </div>
                     </form>
 
                     {% if messages %}
                     {% for message in messages %}
-                    <div class="alert alert-success mt-4" role="alert">
+                    <div class="alert alert-success mt-4 rounded-3" role="alert">
                         {{ message }}
                     </div>
                     {% endfor %}

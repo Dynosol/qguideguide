@@ -12,3 +12,4 @@ venv/
 ./qguideguide_backend/courses/static/course_data.json
 db.sqlite3
 ./qguideguide_backend/db.sqlite3
+./core/settings.py
