@@ -15,3 +15,4 @@ db.sqlite3
 ./core/settings.py
 .env
 ./qguideguide_backend/.env
+./qguideguide_backend/courses/static/json/course_data.json
