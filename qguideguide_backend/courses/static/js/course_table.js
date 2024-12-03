@@ -1,10 +1,9 @@
 $(document).ready(function () {
-    // Initialize DataTables with server-side processing and responsive option
     var table = $('#courses').DataTable({
         'serverSide': true,
         'processing': true,
-        'responsive': true,  // Enable responsive behavior
-        'autoWidth': false,  // Disable autoWidth to allow full-width expansion
+        'responsive': true,
+        'autoWidth': false,
         'ajax': {
             'url': '/api/?format=datatables',
             'type': 'GET'
@@ -17,7 +16,7 @@ $(document).ready(function () {
         'columns': [
             { 'data': 'title' },
             { 'data': 'department' },
-            { 'data': 'instructor.name' },
+            { 'data': 'instructor' },
             { 'data': 'term' },
             { 'data': 'students_enrolled' },
             { 'data': 'response_count' },
@@ -28,11 +27,9 @@ $(document).ready(function () {
             console.error("Thrown Error: ", thrown);
             console.error("Response: ", xhr.responseText);
         }
-    });
+    }); 
 
-    // Listen for window resize events and adjust the DataTable accordingly
     $(window).on('resize', function () {
-        // Use a slight delay to ensure layout has settled before resizing
         setTimeout(function () {
             table.columns.adjust().responsive.recalc();
         }, 300);
