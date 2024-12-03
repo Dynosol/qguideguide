@@ -8,30 +8,36 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/1.10.16/css/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.1/css/responsive.bootstrap4.min.css">
+<link rel="stylesheet" href="{% static 'css/course_table.css' %}">
 
-<div class="container-fluid">
+<div class="container-fluid" style="padding-top: 60px;">
     <div class="row">
         <div class="col-12">
-            <table id="courses" class="table table-striped table-bordered course-table" style="width: 100%;">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Department</th>
-                        <th>Instructor</th>
-                        <th>Term</th>
-                        <th>Class Size</th>
-                        <th>Rating</th>
-                        <th>Hours</th>
-                        <th>Instructor Rating</th>
-                        <th>Instructor Dept. Rating</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <div class="table-wrapper" style="max-height: 90vh; overflow-y: auto;">
+                <table id="courses" class="table table-striped table-bordered course-table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Department</th>
+                            <th>Instructor</th>
+                            <th>Term</th>
+                            <th>Class Size</th>
+                            <th>Rating</th>
+                            <th>Hours</th>
+                            <th>Instructor Rating</th>
+                            <th>Instructor Dept. Rating</th>
+                            <th>QGuide Link</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
+
 
 <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/js/bootstrap.bundle.min.js"></script>
