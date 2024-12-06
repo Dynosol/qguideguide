@@ -3,37 +3,39 @@ import os
 from urllib import response
 from django.core.management.base import BaseCommand
 from django.db import transaction
-from numpy import vecdot
 from pandas import ExcelFile
 from courses.models import Course, CourseFeedbackQuestion, InstructorFeedbackQuestion, HoursAndRecQuestion, CourseComment
 
 class Command(BaseCommand):
     help = 'Import course data from JSON file'
 
-    def get_counts_from_percentages(percentages, total_count):
+    # THERE"S SOMETHING BAD WITH THE ROUNDING HERE!!!!! ## REMMEBER ####
+    def get_counts_from_percentages(self, percentages, total_count):
         total_count = int(total_count)
         counts = []
         
         # First pass: calculate counts based on rounded percentages
         for percent in percentages:
-            count = round((int(percent[:-1]) / 100) * total_count)
+            if percent in ["NRP", "NA", "", "N/A", "0%", "N/"]:
+                counts.append(0)
+                continue
+            count = round((self.clean_float_value(percent[:-1]) / 100) * total_count)
             counts.append(count)
-
-        # Calculate the discrepancy and adjust the counts
-        discrepancy = total_count - sum(counts)
-
-        # Adjust counts to account for the discrepancy
-        for i in range(abs(discrepancy)):
-            counts[i % len(counts)] += 1 if discrepancy > 0 else -1
 
         return counts
 
-    def clean_float_value(string_input):
-        if not string_input:
+    def clean_float_value(self, string_input):
+        if string_input == "0%":
+            return float(0)
+        if not string_input or string_input in ["NRP", "NA", "", "N/A"]:
             return None
         if "%" in string_input:
             return float(string_input[:-1]) / 100
-        return float(string_input)
+        try:
+            return float(string_input)
+        except ValueError:
+            self.stdout.write(self.style.ERROR(f"Unable to convert to float: {string_input}"))
+            return None
 
     def handle(self, *args, **kwargs):
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -56,26 +58,59 @@ class Command(BaseCommand):
 
             try:
                 with transaction.atomic():
+                    if Course.objects.filter(title=course_data.get('Title'), instructor=course_data.get('Instructor'), term=course_data.get('Term')).exists():
+                        self.stdout.write(self.style.WARNING(f"Course '{course_data.get('Title')}' by '{course_data.get('Instructor')}' for term '{course_data.get('Term')}' already exists. Skipping."))
+                        continue
+
                     # is default value of zero bad?? we'll worry about that later
+                    def safe_get(lst, index, default=None): # the data is SO NASTYYYYY
+                        try:
+                            return lst[index]
+                        except IndexError:
+                            return default if default is not None else {}
+
                     feedback_data = course_data.get('Feedback', {})
-                    responses = int(feedback_data.get("course_response_rate", [{}])[0].get("Students", 0))
-                    invited_responses = int(feedback_data.get("course_response_rate", [{}])[1].get("Students", 0))
-                    response_ratio = self.clean_float_value(feedback_data.get("course_response_rate", [{}])[2].get("Students", 0.0))
-                    course_mean_rating = self.clean_float_value(feedback_data.get("course_general_questions", [{}])[0].get("Course Mean", 0))
-                    materials_mean_rating = self.clean_float_value(feedback_data.get("course_general_questions", [{}])[1].get("Course Mean", 0))
-                    assignments_mean_rating = self.clean_float_value(feedback_data.get("course_general_questions", [{}])[2].get("Course Mean", 0))
-                    feedback_mean_rating = self.clean_float_value(feedback_data.get("course_general_questions", [{}])[3].get("Course Mean", 0))
-                    section_mean_rating = self.clean_float_value(feedback_data.get("course_general_questions", [{}])[4].get("Course Mean", 0))
-                    instructor_mean_rating = self.clean_float_value(feedback_data.get("general_instructor_questions", [{}])[0].get("Instructor Mean", 0))
-                    effective_mean_rating = self.clean_float_value(feedback_data.get("general_instructor_questions", [{}])[1].get("Instructor Mean", 0))
-                    accessible_mean_rating = self.clean_float_value(feedback_data.get("general_instructor_questions", [{}])[2].get("Instructor Mean", 0))
-                    enthusiasm_mean_rating = self.clean_float_value(feedback_data.get("general_instructor_questions", [{}])[3].get("Instructor Mean", 0))
-                    discussion_mean_rating = self.clean_float_value(feedback_data.get("general_instructor_questions", [{}])[4].get("Instructor Mean", 0))
-                    inst_feedback_mean_rating = self.clean_float_value(feedback_data.get("general_instructor_questions", [{}])[5].get("Instructor Mean", 0))
-                    returns_mean_rating = self.clean_float_value(feedback_data.get("general_instructor_questions", [{}])[6].get("Instructor Mean", 0))
-                    hours_mean_rating = self.clean_float_value(feedback_data.get("on_average,_how_many_hours_per_week_did_you_spend_on_coursework_outside_of_class?_enter_a_whole_number_between_0_and_168.", [{}])[2].get("Value", 0))
-                    recommend_mean_rating = self.clean_float_value(feedback_data.get("how_strongly_would_you_recommend_this_course_to_your_peers?", [{}])[1].get("Value", 0))
-                    number_comments = len(feedback_data.get("comments_from_students", []))
+                    if len(feedback_data) > 0:
+                        responses = int(feedback_data.get("course_response_rate", [{}])[0].get("Students", 0))
+                        invited_responses = int(feedback_data.get("course_response_rate", [{}])[1].get("Students", 0))
+                        response_ratio = self.clean_float_value(safe_get(feedback_data.get("course_response_rate", [{}]), 2, {}).get("Students", 0.0))
+
+                        course_mean_rating = self.clean_float_value(safe_get(feedback_data.get("course_general_questions", [{}]), 0, {}).get("Course Mean", None))
+                        materials_mean_rating = self.clean_float_value(safe_get(feedback_data.get("course_general_questions", [{}]), 1, {}).get("Course Mean", None))
+                        assignments_mean_rating = self.clean_float_value(safe_get(feedback_data.get("course_general_questions", [{}]), 2, {}).get("Course Mean", None))
+                        feedback_mean_rating = self.clean_float_value(safe_get(feedback_data.get("course_general_questions", [{}]), 3, {}).get("Course Mean", None))
+                        section_mean_rating = self.clean_float_value(safe_get(feedback_data.get("course_general_questions", [{}]), 4, {}).get("Course Mean", None))
+
+                        instructor_mean_rating = self.clean_float_value(safe_get(feedback_data.get("general_instructor_questions", [{}]), 0, {}).get("Instructor Mean", None))
+                        effective_mean_rating = self.clean_float_value(safe_get(feedback_data.get("general_instructor_questions", [{}]), 1, {}).get("Instructor Mean", None))
+                        accessible_mean_rating = self.clean_float_value(safe_get(feedback_data.get("general_instructor_questions", [{}]), 2, {}).get("Instructor Mean", None))
+                        enthusiasm_mean_rating = self.clean_float_value(safe_get(feedback_data.get("general_instructor_questions", [{}]), 3, {}).get("Instructor Mean", None))
+                        discussion_mean_rating = self.clean_float_value(safe_get(feedback_data.get("general_instructor_questions", [{}]), 4, {}).get("Instructor Mean", None))
+                        inst_feedback_mean_rating = self.clean_float_value(safe_get(feedback_data.get("general_instructor_questions", [{}]), 5, {}).get("Instructor Mean", None))
+                        returns_mean_rating = self.clean_float_value(safe_get(feedback_data.get("general_instructor_questions", [{}]), 6, {}).get("Instructor Mean", None))
+
+                        hours_mean_rating = self.clean_float_value(safe_get(feedback_data.get("on_average,_how_many_hours_per_week_did_you_spend_on_coursework_outside_of_class?_enter_a_whole_number_between_0_and_168.", [{}]), 2, {}).get("Value", 0))
+                        recommend_mean_rating = self.clean_float_value(safe_get(feedback_data.get("how_strongly_would_you_recommend_this_course_to_your_peers?", [{}]), 1, {}).get("Value", None))
+                        number_comments = len(feedback_data.get("comments_from_students", []))
+                    else:
+                        responses = 0
+                        invited_responses = 0
+                        response_ratio = 0.0
+                        course_mean_rating = None
+                        materials_mean_rating = None
+                        assignments_mean_rating = None
+                        feedback_mean_rating = None
+                        section_mean_rating = None
+                        instructor_mean_rating = None
+                        effective_mean_rating = None
+                        accessible_mean_rating = None
+                        enthusiasm_mean_rating = None
+                        discussion_mean_rating = None
+                        inst_feedback_mean_rating = None
+                        returns_mean_rating = None
+                        hours_mean_rating = 0
+                        recommend_mean_rating = None
+                        number_comments = 0
 
 
                     # Create course explicitly
@@ -111,7 +146,7 @@ class Command(BaseCommand):
                     # Handle feedback questions
                     course_feedback_data = course_data.get('Feedback', {}).get('course_general_questions', [])
                     for question_data in course_feedback_data:
-                        rating_counts = self.get_counts_from_percentages(question_data.get('Excellent'), question_data.get('Very Good'), question_data.get('Good'), question_data.get('Fair'), question_data.get('Unsatisfactory'), question_data.get('Count')),
+                        rating_counts = self.get_counts_from_percentages([question_data.get('Excellent'), question_data.get('Very Good'), question_data.get('Good'), question_data.get('Fair'), question_data.get('Unsatisfactory')], question_data.get('Count'))
                         CourseFeedbackQuestion.objects.create(
                             course=course,
                             question=question_data.get(''),
@@ -129,7 +164,7 @@ class Command(BaseCommand):
 
                     instructor_feedback_data = course_data.get('Feedback', {}).get('general_instructor_questions', [])
                     for question_data in instructor_feedback_data:
-                        rating_counts = self.get_counts_from_percentages(question_data.get('Excellent'), question_data.get('Very Good'), question_data.get('Good'), question_data.get('Fair'), question_data.get('Unsatisfactory'), question_data.get('Count')),
+                        rating_counts = self.get_counts_from_percentages([question_data.get('Excellent'), question_data.get('Very Good'), question_data.get('Good'), question_data.get('Fair'), question_data.get('Unsatisfactory')], question_data.get('Count'))
                         InstructorFeedbackQuestion.objects.create(
                             course=course,
                             question=question_data.get(''),
@@ -139,7 +174,7 @@ class Command(BaseCommand):
                             good_count=rating_counts[2],
                             fair_count=rating_counts[3],
                             unsatisfactory_count=rating_counts[4],
-                            course_mean=self.clean_float_value(question_data.get('Instructor Mean')),
+                            instructor_mean=self.clean_float_value(question_data.get('Instructor Mean')),
                             fas_mean=self.clean_float_value(question_data.get('FAS Mean'))
                         )
 
