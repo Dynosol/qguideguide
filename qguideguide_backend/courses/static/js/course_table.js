@@ -18,9 +18,15 @@ $(document).ready(function () {
             { 'data': 'department' },
             { 'data': 'instructor' },
             { 'data': 'term' },
-            { 'data': 'students_enrolled' },
-            { 'data': 'response_count' },
-            { 'data': 'response_rate' }
+            { 
+                'data': 'url',
+                'render': function (data, type, row, meta) {
+                    if (type === 'display') {
+                        return `<a href="${data}" target="_blank">QGuide</a>`;
+                    }
+                    return data;
+                }
+            },
         ],
         'error': function(xhr, error, thrown) {
             console.error("DataTables Error: ", error);
