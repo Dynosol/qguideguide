@@ -18,6 +18,10 @@ $(document).ready(function () {
             { 'data': 'department' },
             { 'data': 'instructor' },
             { 'data': 'term' },
+            { 'data': 'invited_responses' },
+            { 'data': 'course_mean_rating' },
+            { 'data': 'hours_mean_rating' },
+            { 'data': 'instructor_mean_rating'},
             { 
                 'data': 'url',
                 'render': function (data, type, row, meta) {

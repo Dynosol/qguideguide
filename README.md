@@ -20,3 +20,12 @@
 - CSP protections for the contact page
 - ended up using a django tables library to avoid the headache of sorting and filtering etc.
 - bootstrap formatting
+
+TODO:
+- professor rankings... + the calculation for that
+- about page
+- working contact page + captcha
+(deployment?)
+FUTURE TODOS:
+- course custom pages, custom view
+- user login with HUID, leave commments, grading curve information

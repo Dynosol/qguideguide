@@ -92,6 +92,8 @@ class Command(BaseCommand):
                         hours_mean_rating = self.clean_float_value(safe_get(feedback_data.get("on_average,_how_many_hours_per_week_did_you_spend_on_coursework_outside_of_class?_enter_a_whole_number_between_0_and_168.", [{}]), 2, {}).get("Value", 0))
                         recommend_mean_rating = self.clean_float_value(safe_get(feedback_data.get("how_strongly_would_you_recommend_this_course_to_your_peers?", [{}]), 1, {}).get("Value", None))
                         number_comments = len(feedback_data.get("comments_from_students", []))
+
+                        instructor = feedback_data.get('Instructor Name', [{}])[0].get('Instructor Name', course_data.get('Instructor'))
                     else:
                         responses = 0
                         invited_responses = 0
@@ -111,13 +113,14 @@ class Command(BaseCommand):
                         hours_mean_rating = 0
                         recommend_mean_rating = None
                         number_comments = 0
-
+                        
+                        instructor=course_data.get('Instructor'),
 
                     # Create course explicitly
                     course = Course.objects.create(
                         title=course_data.get('Title'),
                         department=course_data.get('Department'),
-                        instructor=course_data.get('Instructor'),
+                        instructor=instructor,
                         term=course_data.get('Term'),
                         subject=course_data.get('Subject'),
                         blue_course_id=course_data.get('Bluecourseid'),
