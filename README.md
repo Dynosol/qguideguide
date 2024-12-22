@@ -29,3 +29,5 @@ TODO:
 FUTURE TODOS:
 - course custom pages, custom view
 - user login with HUID, leave commments, grading curve information
+
+- FIX QUERIES! to work more like qguideplus, where search button does an internal (secure!) api call
