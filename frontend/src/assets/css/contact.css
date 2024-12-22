@@ -1,0 +1,32 @@
+.container {
+    margin-top: 5rem;
+    margin-bottom: 5rem;
+}
+
+.card {
+    border-radius: 16px; /* Equivalent to rounded-4 */
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* Adds shadow for a soft look */
+    border: none; /* Remove border */
+}
+
+.card-title {
+    color: #343a40;
+}
+
+.contact-description {
+    color: #6c757d;
+}
+
+.form-control {
+    border-radius: 12px; /* Equivalent to rounded-3 */
+}
+
+.btn-dark {
+    border-radius: 12px; /* Rounded button */
+    padding-left: 2.5rem; /* Equivalent to px-5 */
+    padding-right: 2.5rem; /* Equivalent to px-5 */
+}
+
+.alert {
+    border-radius: 12px; /* Rounded corners for alert */
+}
