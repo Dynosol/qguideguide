@@ -8,7 +8,7 @@ def courses_list(request):
     return render(request, 'courses.html', {'courses': courses})
 
 class NoPagination(pagination.LimitOffsetPagination):
-    default_limit = 10  # No limit to the number of records returned
+    default_limit = None  # No limit to the number of records returned
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all().order_by('title')

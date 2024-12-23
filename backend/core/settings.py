@@ -43,9 +43,9 @@ INSTALLED_APPS = [
     'courses',
     'rest_framework_datatables',
     'rest_framework',
-    'about',
+    # 'about', depricated!
     'core',
-    'contact',
+    # 'contact', depricated!
     'csp',
     'django_recaptcha',
     'corsheaders',
