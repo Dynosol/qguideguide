@@ -3,12 +3,13 @@ import { Link } from 'react-router-dom';
 import '/src/assets/css/Nav.css'; // Import corresponding CSS for styling
 
 const Navbar: React.FC = () => {
-    console.log('Navbar component rendering');
     return(
         <nav>
             <div className="nav-container">
-                <div id="logo" className="logo" data-url="{% url 'courses_list' %}">
-                    <span>QGuideGuide</span>
+                <div id="logo" className="logo">
+                    <Link to="/" className="logo-link">
+                        <span>QGuideGuide</span>
+                    </Link>
                 </div>
                 <ul className="nav-links">
                     <li className="navbar-item">

@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'contact',
     'csp',
     'django_recaptcha',
+    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
@@ -72,6 +73,11 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'csp.middleware.CSPMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",  # React dev server
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -79,7 +85,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'frontend', 'dist')],
+        'DIRS': [os.path.join(BASE_DIR, '../', 'frontend', 'dist')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -142,7 +148,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "frontend", "dist")
+    os.path.join(BASE_DIR, "../", "frontend", "dist")
 ]
 
 # Default primary key field type

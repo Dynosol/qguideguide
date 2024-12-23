@@ -1,10 +1,9 @@
 body {
     margin: 0;
-    padding-top: 3.2vh;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
 
-.content {
+.non-nav {
     padding: 2em;
-    margin-top: 60px; /* To account for fixed navbar */
+    margin-top: 60px;
 }

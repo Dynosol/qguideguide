@@ -6,6 +6,6 @@ router = DefaultRouter()
 router.register(r'', views.CourseViewSet, basename='course')
 
 urlpatterns = [
-    path('api/', include(router.urls)),  # Directly expose /api/
-    path('', views.courses_list, name='courses_list'),
+    path('', include(router.urls)),  # Directly expose /api/
+    # path('', views.courses_list, name='courses_list'),
 ]
