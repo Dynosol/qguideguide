@@ -21,13 +21,17 @@
 - ended up using a django tables library to avoid the headache of sorting and filtering etc.
 - bootstrap formatting
 
+added things:
+- using TanStack Virtualization to show everything quickly
+- using TanStack Table to filter query etc.
+- using Dexie.js to store client side
+
+
 TODO:
 - professor rankings... + the calculation for that
 - about page
 - working contact page + captcha
-(deployment?)
+- fullscreen event handler to remove scrollbar
 FUTURE TODOS:
 - course custom pages, custom view
 - user login with HUID, leave commments, grading curve information
-
-- FIX QUERIES! to work more like qguideplus, where search button does an internal (secure!) api call
