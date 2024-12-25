@@ -13,7 +13,7 @@
 - Instructors having the same name / names that aren't just two words
 - Changed the table names to literals vs. just numbered table names, which fucked things up for data extraction
 - Tons of missing data, i.e. courses where no one responded, or just n/a values in general
-- course names are weird; sometimes two titles/two departments, sometimes instructors have a pseudonym or 3 word names (crazy regex expressions...)
+- course names are weird; sometimes two titles/two departments, sometimes instructors have a pseudonym or 3 word names (crazy regex expressions...), multiple classes have the same name!!! STAT 293/393 etc.
 
 ## Website Creation
 1. it's slow. slow to show all data and calculate it all... how to make this faster? --> answer: use 

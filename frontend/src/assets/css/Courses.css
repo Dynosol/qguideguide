@@ -1,6 +1,8 @@
 .main-table {
   width: 100%;
-  /* position: 'fixed'; */
+  position: 'fixed';
+  overflow: hidden;
+  display: flex;
 }
 
 /* button[aria-label="Toggle full screen"] {

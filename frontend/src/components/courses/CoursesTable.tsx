@@ -3,13 +3,13 @@ import {
   MaterialReactTable,
   useMaterialReactTable,
   type MRT_ColumnDef,
-  MRT_FilterRangeSlider,
 } from 'material-react-table';
 import axios from 'axios';
 import { db, Course } from './db';
 import { googleSearchFilter } from '../../utils/searchHelper';
 
-const USER_KEYPRESS_SEARCHDELAY = 100 // in milliseconds
+// const INITIAL_BATCHSIZE = 100
+const USER_KEYPRESS_SEARCHDELAY = 100 // in milliseconds, preventing search updating per keypress which can lag out the querying
 
 const CoursesTable: React.FC = () => {
   // Things that change
@@ -17,22 +17,21 @@ const CoursesTable: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchValue, setSearchValue] = useState(''); // this one changes every keystroke, but doesn't update after each to lag everything
   const [globalFilter, setGlobalFilter] = useState('');
+  const [columnPinning, setColumnPinning] = useState<{ left?: string[] }>({ left: ['title'] });
 
   /**
-   * Attempt to load any existing data from Dexie. If none found, fetch from server.
+   * Load data from IndexedDB or fetch from server
    */
   useEffect(() => {
     (async () => {
       try {
-        // 1. Check how many courses are stored in Dexie
         const count = await db.courses.count();
         if (count === 0) {
-          // 2. Nothing in Dexie => fetch from the server
+          // No data in IndexedDB, fetch from server
           await fetchAndStoreCourses();
         } else {
-          // 3. We have data => load from Dexie
-          const storedCourses = await db.courses.toArray();
-          console.log('Courses loaded from IndexedDB:', storedCourses); // so we know it worked
+          // data is already in IndexedDB, we don't need to fetch
+          let storedCourses = await db.courses.toArray();
           setData(storedCourses);
           setIsLoading(false);
         }
@@ -51,38 +50,49 @@ const CoursesTable: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchValue, globalFilter]);
 
-  /**
-   * Fetch from server, then store in Dexie
-   */
+    // Adjust columnPinning based on window size
+  useEffect(() => {
+    const updateColumnPinning = () => {
+      console.log(window.innerWidth)
+      if (window.innerWidth <= 850) {
+        // Mobile: No pinned columns
+        setColumnPinning({});
+      } else {
+        // Desktop: Pin the 'title' column
+        setColumnPinning({ left: ['title'] });
+      }
+    };
+
+    // Initial check
+    updateColumnPinning();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', updateColumnPinning);
+
+    // Cleanup event listener on unmount
+    return () => window.removeEventListener('resize', updateColumnPinning);
+  }, []);
+
+  // DEPRICATED
   const fetchAndStoreCourses = async () => {
     setIsLoading(true);
     try {
       const response = await axios.get<Course[]>('http://localhost:8000/api/');
       const courses: Course[] = response.data;
 
-      // put in React state
+      // Store in Dexie
+      await db.courses.clear();
+      await db.courses.bulkAdd(courses);
+      console.log('Courses successfully stored in IndexedDB');
+
       setData(courses);
 
-      // store in Dexie
-      // first clear existing data (if any)
-      await db.courses.clear();
-      // then bulkAdd
-      await db.courses.bulkAdd(courses);
-      console.log('Courses successfully stored in IndexedDB'); // so we know it worked
     } catch (error) {
       console.error('Error fetching or storing courses:', error);
     } finally {
       setIsLoading(false);
     }
   };
-
-  /**
-   * OPTIONAL REFRESH CLEARING??
-   */
-  // const handleRefresh = async () => {
-  //   await db.courses.clear();
-  //   await fetchAndStoreCourses();
-  // };
 
   const columns = useMemo<MRT_ColumnDef<Course>[]>(
     () => [
@@ -95,8 +105,13 @@ const CoursesTable: React.FC = () => {
       {
         accessorKey: 'department',
         header: 'Department',
-        filterFn: googleSearchFilter,
+        // filterFn: googleSearchFilter,
         filterVariant: 'multi-select',
+        filterFn: (row, id, filterValue: string[]) => {
+          if (!filterValue?.length) return true; // If no filters are selected, show all rows
+          const rowValue = row.getValue<string>(id);
+          return filterValue.some((value) => rowValue === value); // "OR" logic
+        },
       },
       {
         accessorKey: 'instructor',
@@ -152,6 +167,15 @@ const CoursesTable: React.FC = () => {
           step: 0.1,
         },
         minSize: 200,
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
+      },
+      {
+        accessorKey: 'course_mean_rating_bayesian',
+        header: 'Bayesian Course Score',
+      },
+      {
+        accessorKey: 'course_mean_rating_letter_grade',
+        header: 'Course Grade',
       },
       {
         accessorKey: 'materials_mean_rating',
@@ -163,6 +187,7 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'assignments_mean_rating',
@@ -185,6 +210,7 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'section_mean_rating',
@@ -196,6 +222,7 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'instructor_mean_rating',
@@ -207,6 +234,7 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'effective_mean_rating',
@@ -218,6 +246,7 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'accessible_mean_rating',
@@ -229,6 +258,7 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'enthusiasm_mean_rating',
@@ -240,6 +270,7 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'discussion_mean_rating',
@@ -251,6 +282,7 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'inst_feedback_mean_rating',
@@ -262,6 +294,7 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'returns_mean_rating',
@@ -273,6 +306,7 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'hours_mean_rating',
@@ -281,6 +315,7 @@ const CoursesTable: React.FC = () => {
         muiFilterSliderProps: {
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'recommend_mean_rating',
@@ -292,12 +327,14 @@ const CoursesTable: React.FC = () => {
           min: 0, //custom min (as opposed to faceted min)
           step: 0.1,
         },
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'number_comments',
         header: 'Number of Comments',
         minSize: 250,
         filterVariant: 'range',
+        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
       },
       {
         accessorKey: 'url',
@@ -312,6 +349,7 @@ const CoursesTable: React.FC = () => {
           );
         },
       }
+      
     ],
     []
   );
@@ -319,9 +357,10 @@ const CoursesTable: React.FC = () => {
   const table = useMaterialReactTable({
     columns,
     data,
-    state: {
+    state: { // things that change after initial load
       isLoading,
       globalFilter,
+      columnPinning,
     },
     enableGlobalFilter: true, // big search box at the top
     enableSorting: true,
@@ -342,7 +381,7 @@ const CoursesTable: React.FC = () => {
     },
     muiPaginationProps: {
       rowsPerPageOptions: [
-        10, 25, 50, 100, 250, 500, 1000, 5000, 11961,
+        10, 25, 50, 100, 250, 500, 1000, 5000, 11608,
       ],
       showFirstButton: true,
       showLastButton: true,
@@ -350,15 +389,12 @@ const CoursesTable: React.FC = () => {
     enableColumnPinning: true,
     enableFacetedValues: true,
     initialState: {
-      columnPinning: {
-        left: ['title'],
-      },
       columnVisibility: {
         // url: false,
         // // department: false,
         // responses: false,
         // response_ratio: false,
-        // blue_course_id: false,
+        blue_course_id: false,
         // materials_mean_rating: false,
         // assignments_mean_rating: false,
         // feedback_mean_rating: false,
@@ -393,6 +429,7 @@ const CoursesTable: React.FC = () => {
       },
       sx: { cursor: 'pointer' }, // Change the cursor to indicate clickability
     }),
+    muiTableContainerProps: { sx: { maxHeight: '79vh' } },
   });
 
   return <MaterialReactTable table={table} />;
