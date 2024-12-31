@@ -99,8 +99,8 @@ const Navbar: React.FC = () => {
           </Link>
         </div>
 
+        <div className="toggle-modes">
         <FormControlLabel
-          style={{ color: 'white'}}
           label={isDarkMode ? 'Dark Mode' : 'Light Mode'}
           control={
             <IOSSwitch
@@ -110,8 +110,8 @@ const Navbar: React.FC = () => {
             />
           }
         />
+        </div>
 
-        {/* Hamburger Menu Button */}
         <button
           className={`menu-toggle ${isMenuOpen ? 'open' : ''}`}
           onClick={toggleMenu}

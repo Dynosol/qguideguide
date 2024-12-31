@@ -1,19 +1,15 @@
-:root {
-  --navbar-bg-light: #7b7b7b;
-  --navbar-bg-dark: rgba(29, 29, 29, 1);
-  --text-color-light: #565656;
-  --text-color-dark: #ffffff;
-  --link-hover-bg-light: #8e8e8e;
-  --link-hover-bg-dark: #444;
-  --hamburger-color-light: #333;
-  --hamburger-color-dark: #ffffff;
+.toggle-modes {
+  color: var(--nav-text-color-light);
+}
+body.dark-mode .toggle-modes {
+  color: var(--text-color-dark);
 }
 
-/* yes, gpt was used to adjust positioning of things... sue me */
+/* yes, gpt was used to adjust positioning of things...*/
 
 .logo-link {
   text-decoration: none;
-  color: var(--text-color-light);
+  color: var(--nav-text-color-light);
 }
 body.dark-mode .logo-link {
   color: var(--text-color-dark);
@@ -29,10 +25,11 @@ nav {
   height: 4vh; /* Changed from 7vh to 4vh */
   top: 0;
   z-index: 1000;
+  background-color: var(--harvard);
+  border-bottom: 1px solid black;
 }
 body.dark-mode nav {
   background-color: var(--navbar-bg-dark);
-  color: var(--text-color-dark);
 }
 
 .nav-container {
@@ -68,7 +65,7 @@ body.dark-mode nav {
 /* Padding scaled from 1vh/2vh down to ~0.6vh/1.1vh
    Border-radius scaled from 0.8vh down to ~0.45vh */
 .nav-links li a {
-  color: var(--text-color-light);
+  color: var(--nav-text-color-light);
   text-decoration: none;
   /* padding: 1vh; */
   transition: background-color 0.2s;
@@ -84,37 +81,12 @@ body.dark-mode .nav-links li a:hover {
   background-color: var(--link-hover-bg-dark);
 }
 
-/* Mobile Styles */
-@media (max-width: 850px) {
-  .menu-toggle {
-    display: block;
-  }
 
-  .nav-links {
-    display: flex;
-    flex-direction: column;
-    /* Gap scaled from 2vh to ~1.15vh (optional) */
-    gap: 1.15vh;
-    position: absolute;
-    /* Top should match new nav height */
-    top: 4vh;
-    background-color: #f0f0f0;
-    /* Scaled padding from 2vh down to ~1.15vh */
-    padding: 1.15vh;
-    /* Same scaled box-shadow as above */
-    box-shadow: 0 0.23vh 0.46vh rgba(0, 0, 0, 0.1);
-    right: -100%;
-    transition: right 0.5s ease;
-  }
 
-  .nav-links.open {
-    right: 0vh;
-  }
-}
 
 /* hamburgerr */
 .menu-toggle.open span:nth-child(1) {
-  transform: rotate(45deg) translate(-2px, -1px);
+  transform: rotate(45deg) translate(-2px, 1px);
 }
 
 .menu-toggle.open span:nth-child(2) {
@@ -122,7 +94,7 @@ body.dark-mode .nav-links li a:hover {
 }
 
 .menu-toggle.open span:nth-child(3) {
-  transform: rotate(-45deg) translate(-2px, -4px);
+  transform: rotate(-45deg) translate(-3px, -2px);
 }
 
 .menu-toggle input:checked~span {
@@ -165,4 +137,32 @@ body.dark-mode .nav-links li a:hover {
   transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0),
     background 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0),
     opacity 0.55s ease;
+}
+
+/* Mobile Styles */
+@media (max-width: 850px) {
+  .menu-toggle {
+    display: block;
+  }
+
+  .nav-links {
+    display: flex;
+    flex-direction: column;
+    /* Gap scaled from 2vh to ~1.15vh (optional) */
+    gap: 1.15vh;
+    position: absolute;
+    /* Top should match new nav height */
+    top: 4vh;
+    background-color: #f0f0f0;
+    /* Scaled padding from 2vh down to ~1.15vh */
+    padding: 1.15vh;
+    /* Same scaled box-shadow as above */
+    box-shadow: 0 0.23vh 0.46vh rgba(0, 0, 0, 0.1);
+    right: -100%;
+    transition: right 0.5s ease;
+  }
+
+  .nav-links.open {
+    right: 0vh;
+  }
 }
