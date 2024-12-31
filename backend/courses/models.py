@@ -51,7 +51,6 @@ class Course(models.Model):
     discussion_mean_rating_bayesian_score = models.FloatField(null=True, blank=True)
     inst_feedback_mean_rating_bayesian_score = models.FloatField(null=True, blank=True)
     returns_mean_rating_bayesian_score = models.FloatField(null=True, blank=True)
-    recommend_mean_rating_bayesian_score = models.FloatField(null=True, blank=True)
 
     course_mean_grade = models.CharField(max_length=2, null=True, blank=True)
     materials_mean_grade = models.CharField(max_length=2, null=True, blank=True)
@@ -65,7 +64,6 @@ class Course(models.Model):
     discussion_mean_grade = models.CharField(max_length=2, null=True, blank=True)
     inst_feedback_mean_grade = models.CharField(max_length=2, null=True, blank=True)
     returns_mean_grade = models.CharField(max_length=2, null=True, blank=True)
-    recommend_mean_grade = models.CharField(max_length=2, null=True, blank=True)
 
     course_mean_rating_bayesian_score_department = models.FloatField(null=True, blank=True)
     materials_mean_rating_bayesian_score_department = models.FloatField(null=True, blank=True)
@@ -79,7 +77,6 @@ class Course(models.Model):
     discussion_mean_rating_bayesian_score_department = models.FloatField(null=True, blank=True)
     inst_feedback_mean_rating_bayesian_score_department = models.FloatField(null=True, blank=True)
     returns_mean_rating_bayesian_score_department = models.FloatField(null=True, blank=True)
-    recommend_mean_rating_bayesian_score_department = models.FloatField(null=True, blank=True)
 
     course_mean_grade_department = models.CharField(max_length=2, null=True, blank=True)
     materials_mean_grade_department = models.CharField(max_length=2, null=True, blank=True)
@@ -93,7 +90,6 @@ class Course(models.Model):
     discussion_mean_grade_department = models.CharField(max_length=2, null=True, blank=True)
     inst_feedback_mean_grade_department = models.CharField(max_length=2, null=True, blank=True)
     returns_mean_grade_department = models.CharField(max_length=2, null=True, blank=True)
-    recommend_mean_grade_department = models.CharField(max_length=2, null=True, blank=True)
 
 
 class CourseFeedbackQuestion(models.Model):

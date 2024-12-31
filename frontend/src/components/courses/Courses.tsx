@@ -4,6 +4,8 @@ import '/src/assets/css/Courses.css';
 
 const Courses: React.FC = () => (
     <div className="non-navbar">
+        <h1 className="courses-title">Course Search Tool</h1>
+
         <div className="main-table">
             <CoursesTable />
         </div>

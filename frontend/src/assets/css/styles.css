@@ -4,11 +4,12 @@ body {
 }
 
 .non-navbar {
-    margin-top: 7vh;
-    bottom: 0; /* Align the table to the bottom */
-    left: 0; /* Align the table to the left */
-    overflow: hidden;
-    display: flex; /* Flex container for better alignment if needed */
+  margin-top: 7vh;
+  display: flex;
+  flex-direction: column;     /* vertical stacking */
+  align-items: center;        /* center horizontally */
+  justify-content: flex-start;/* or 'center', 'space-between', etc. */
+  /* remove bottom: 0 and left: 0 if you don't want it pinned */
 }
 
 ::-webkit-scrollbar-track {

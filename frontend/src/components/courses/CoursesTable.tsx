@@ -158,24 +158,48 @@ const CoursesTable: React.FC = () => {
         },
       },
       {
-        accessorKey: 'course_mean_rating',
+        accessorKey: 'course_mean_rating_bayesian_score',
         header: 'Course Score',
         filterVariant: 'range-slider',
         muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
+          max: 5,
+          min: 0,
+          step: 0.05,
         },
         minSize: 200,
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'course_mean_rating_bayesian',
-        header: 'Bayesian Course Score',
-      },
-      {
-        accessorKey: 'course_mean_rating_letter_grade',
-        header: 'Course Grade',
+        Cell: ({ row }) => {
+          const {
+            course_mean_rating,
+            course_mean_rating_bayesian_score,
+            course_mean_grade,
+            course_mean_rating_bayesian_score_department,
+            course_mean_grade_department
+          } = row.original;
+
+          if (!course_mean_rating) {
+            return <em>No Data</em>;
+          }
+
+          return (
+            <div>
+              <span style={{ color: 'blue' }}>
+                {course_mean_rating_bayesian_score}
+                {' ('}{course_mean_grade}{')'}
+              </span>
+
+              {' | '}
+
+              <span style={{ color: 'green' }}>
+                {course_mean_rating_bayesian_score_department}
+                {' ('}<strong>{course_mean_grade_department}</strong>{')'}
+              </span>
+
+              {' | '}
+
+              <strong>{course_mean_rating}</strong>
+            </div>
+          );
+        },
       },
       {
         accessorKey: 'materials_mean_rating',
@@ -432,7 +456,9 @@ const CoursesTable: React.FC = () => {
     muiTableContainerProps: { sx: { maxHeight: '79vh' } },
   });
 
-  return <MaterialReactTable table={table} />;
+  return (
+      <MaterialReactTable table={table} />
+  );
 };
 
 export default CoursesTable;

@@ -71,6 +71,10 @@ class Command(BaseCommand):
         # for calculating bayesian scores
         counts = defaultdict(int)
         sums = defaultdict(float)
+
+        global_sum_of_squares_dict = defaultdict(float)
+        dept_sum_of_squares_dict = defaultdict(lambda: defaultdict(float))
+
         counts_by_department = defaultdict(lambda: defaultdict(int))
         sums_by_department = defaultdict(lambda: defaultdict(float))
 
@@ -208,12 +212,14 @@ class Command(BaseCommand):
                         sums_add = self.clean_float_value(question_data.get('Course Mean'))
                         if sums_add is not None:
                             sums[question] += sums_add
+                            global_sum_of_squares_dict[question] += sums_add ** 2
                         counts_by_department[course_data.get('Department')][question] += 1
                         sums_dep_add = self.clean_float_value(question_data.get('Course Mean'))
                         if sums_dep_add is not None:
                             sums_by_department[course_data.get('Department')][question] += sums_dep_add
+                            dept_sum_of_squares_dict[course_data.get('Department')][question] += sums_dep_add ** 2
 
-                    feedback_created += 1
+                        feedback_created += 1
 
 
                     #
@@ -241,12 +247,14 @@ class Command(BaseCommand):
                         sums_add = self.clean_float_value(question_data.get('Instructor Mean'))
                         if sums_add is not None:
                             sums[question] += sums_add
+                            global_sum_of_squares_dict[question] += sums_add ** 2
                         counts_by_department[course_data.get('Department')][question] += 1
                         sums_dep_add = self.clean_float_value(question_data.get('Instructor Mean'))
                         if sums_dep_add is not None:
                             sums_by_department[course_data.get('Department')][question] += sums_dep_add
+                            dept_sum_of_squares_dict[course_data.get('Department')][question] += sums_dep_add ** 2
 
-                    feedback_created += 1
+                        feedback_created += 1
 
                     #
                     # this too, is depricated, but we'll keep it for now
@@ -271,7 +279,7 @@ class Command(BaseCommand):
                                 course=course,
                                 comment_text=comment['Comments']
                             )
-                    comments_created += 1
+                            comments_created += 1
 
             except Exception as e:
                 # Print out all the details of the course that failed
@@ -316,7 +324,9 @@ class Command(BaseCommand):
             },
             "Counts": counts_dict,
             "Sums": sums_dict,
+            "SumOfSquares": global_sum_of_squares_dict,
             "Counts by Department": counts_by_department_dict,
+            "SumOfSquares by Department": dept_sum_of_squares_dict,
             "Sums by Department": sums_by_department_dict
         }
 
