@@ -3,6 +3,9 @@
   height: 92vh;
   bottom: 0;
   position: fixed;
+  background-color: #fff;
+}
+body.dark-mode .main-table {
   background-color: var(--navbar-bg-dark);
 }
 
@@ -21,6 +24,6 @@
   color: var(--text-color-light);
 }
 body.dark-mode .guide {
-  background-color: var(--navbar-bg-dark);
+  background-color: var(--dark-greyish);
   color: var(--text-color-dark);
 }

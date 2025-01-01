@@ -2,19 +2,23 @@
   --navbar-bg-dark: rgba(29, 29, 29, 1);
   --nav-text-color-light: #ffffff;
   --text-color-light: rgb(59, 59, 59);
-  --text-color-dark: #ffffff;
+  --text-color-dark: #ccc;
   --link-hover-bg-light: #8e8e8e;
   --link-hover-bg-dark: #444;
   --hamburger-color-light: #333;
   --hamburger-color-dark: #ffffff;
   --harvard: rgba(150, 59, 60, 1);
   --greyish: rgba(230, 230, 237);
+  --dark-greyish: #3c3c3c;
 }
 
 body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    background-color: var(--navbar-bg-dark);
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  background-color: #fff;
+}
+body.dark-mode {
+  background-color: var(--navbar-bg-dark);
 }
 
 .non-navbar { 

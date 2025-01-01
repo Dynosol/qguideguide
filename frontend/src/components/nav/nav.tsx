@@ -5,6 +5,7 @@ import { styled } from '@mui/material/styles';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch, { SwitchProps } from '@mui/material/Switch';
 import { useThemeContext } from '../../utils/themeHelper'; // <--- import context
+import { colorPalettes } from '../../utils/colors';
 
 const IOSSwitch = styled((props: SwitchProps) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
@@ -20,7 +21,7 @@ const IOSSwitch = styled((props: SwitchProps) => (
       transform: 'translateX(16px)',
       color: '#fff',
       '& + .MuiSwitch-track': {
-        backgroundColor: '#65C466',
+        backgroundColor: colorPalettes.light.harvard,
         opacity: 1,
         border: 0,
         // ...theme.applyStyles('dark', {

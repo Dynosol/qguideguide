@@ -7,17 +7,45 @@ import {
 import axios from 'axios';
 import { db, Course } from './db';
 import { googleSearchFilter } from '../../utils/searchHelper';
+import { useThemeContext } from '../../utils/themeHelper'; // Import Theme Context
+import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
+import { colorPalettes } from '../../utils/colors';
 
 // const INITIAL_BATCHSIZE = 100
 const USER_KEYPRESS_SEARCHDELAY = 100 // in milliseconds, preventing search updating per keypress which can lag out the querying
 
 const CoursesTable: React.FC = () => {
   // Things that change
+  const { mode } = useThemeContext(); // Access current theme mode
   const [data, setData] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchValue, setSearchValue] = useState(''); // this one changes every keystroke, but doesn't update after each to lag everything
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnPinning, setColumnPinning] = useState<{ left?: string[] }>({ left: ['title'] });
+
+  const tableTheme = useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: mode,
+          primary: {
+            main: colorPalettes[mode].harvard,
+          },
+          ...(mode === 'dark'
+            ? {
+                text: {
+                  primary: colorPalettes[mode].textColorDark,
+                },
+              }
+            : {
+                text: {
+                  primary: '#000000',
+                },
+              }),
+        },
+      }),
+    [mode]
+  );
 
   /**
    * Load data from IndexedDB or fetch from server
@@ -166,7 +194,7 @@ const CoursesTable: React.FC = () => {
           min: 0,
           step: 0.05,
         },
-        minSize: 200,
+        minSize: 220,
         Cell: ({ row }) => {
           const {
             course_mean_rating,
@@ -375,7 +403,7 @@ const CoursesTable: React.FC = () => {
       }
       
     ],
-    []
+    [mode]
   );
 
   const table = useMaterialReactTable({
@@ -416,19 +444,21 @@ const CoursesTable: React.FC = () => {
       columnVisibility: {
         // url: false,
         // // department: false,
-        // responses: false,
-        // response_ratio: false,
+        responses: false,
+        response_ratio: false,
         blue_course_id: false,
-        // materials_mean_rating: false,
+        materials_mean_rating: false,
         // assignments_mean_rating: false,
-        // feedback_mean_rating: false,
+        feedback_mean_rating: false,
         // section_mean_rating: false,
-        // effective_mean_rating: false,
-        // accessible_mean_rating: false,
-        // enthusiasm_mean_rating: false,
-        // discussion_mean_rating: false,
-        // inst_feedback_mean_rating: false,
-        // returns_mean_rating: false,
+
+        effective_mean_rating: false,
+        accessible_mean_rating: false,
+        enthusiasm_mean_rating: false,
+        discussion_mean_rating: false,
+        inst_feedback_mean_rating: false,
+        returns_mean_rating: false,
+        
         // hours_mean_rating: false,
         // recommend_mean_rating: false,
         // number_comments: false,
@@ -451,13 +481,25 @@ const CoursesTable: React.FC = () => {
           console.warn('No URL found for the selected row');
         }
       },
-      sx: { cursor: 'pointer' }, // Change the cursor to indicate clickability
+      sx: {
+        cursor: 'pointer',
+      }, // Change the cursor to indicate clickability
     }),
     muiTableContainerProps: { sx: { maxHeight: '79vh' } },
+    muiTableBodyProps: {
+      sx: {
+        //stripe the rows, make odd rows a darker color
+        '& tr:nth-of-type(odd) > td': {
+          backgroundColor: mode === 'dark' ? '#303030': '#f5f5f5',
+        },
+      },
+    },
   });
 
   return (
-      <MaterialReactTable table={table} />
+      <MuiThemeProvider theme={tableTheme}>
+       <MaterialReactTable table={table} />
+      </MuiThemeProvider>
   );
 };
 

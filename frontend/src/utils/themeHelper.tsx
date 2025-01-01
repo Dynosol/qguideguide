@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext, useMemo } from 'react';
 import { createTheme, ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
 
+const HARVARD_COLOR = '#963b3c';
+
 type ThemeContextValue = {
   mode: 'light' | 'dark';
   toggleMode: (isDark: boolean) => void;
@@ -30,7 +32,9 @@ export const ThemeContextProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const theme = useMemo(() => createTheme({
     palette: {
       mode,
-      // You can customize the palette further based on your requirements
+      primary: {
+        main: HARVARD_COLOR,
+      },
     },
   }), [mode]);
 
