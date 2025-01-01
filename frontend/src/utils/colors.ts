@@ -11,6 +11,7 @@ export interface ColorPalette {
   greyish: string;
   harvard: string;
   darkGreyish: string;
+  stripes: string;
 }
 
 export const colorPalettes: Record<ThemeMode, ColorPalette> = {
@@ -25,6 +26,7 @@ export const colorPalettes: Record<ThemeMode, ColorPalette> = {
     greyish: 'rgba(230, 230, 237)',
     harvard: '#963b3c',
     darkGreyish: '#3c3c3c',
+    stripes: '#f5f5f5',
   },
   dark: {
     navbarBgDark: '#1d1d1d',
@@ -37,5 +39,6 @@ export const colorPalettes: Record<ThemeMode, ColorPalette> = {
     greyish: '#2c2c2c',
     harvard: '#963b3c',
     darkGreyish: '#3c3c3c',
+    stripes: '#303030',
   },
 };

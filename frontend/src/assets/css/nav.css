@@ -1,8 +1,21 @@
+nav,
+.nav-container,
+.nav-links,
+.logo-link,
+.toggle-modes,
+.menu-toggle,
+.main-content {
+  position: relative;
+  z-index: 2;
+  /* Higher than the pseudo-elements */
+}
+
+
 .toggle-modes {
   color: var(--nav-text-color-light);
 }
 body.dark-mode .toggle-modes {
-  color: var(--text-color-dark);
+  color: var(--harvard);
 }
 
 /* yes, gpt was used to adjust positioning of things...*/
@@ -15,7 +28,7 @@ body.dark-mode .logo-link {
   color: var(--text-color-dark);
 }
 
-/* Navbar (scaled to ~57% of original) */
+/* =================== GLOW EFFECT ==================================== */
 nav {
   padding: 0;
   margin: 0;
@@ -26,11 +39,50 @@ nav {
   top: 0;
   z-index: 1000;
   background-color: var(--harvard);
+  /* background: linear-gradient(to right, var(--harvard) 40%, var(--harvard-lighter)); */
   border-bottom: 1px solid black;
+  overflow: hidden;
 }
 body.dark-mode nav {
-  background-color: var(--navbar-bg-dark);
+  background: var(--navbar-bg-dark);
+  /* background: linear-gradient(to right, var(--navbar-bg-dark) 10%, var(--navbar-bg-dark-lighter)); */
 }
+
+nav::before,
+nav::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: opacity 1000ms ease-in-out;
+  opacity: 0;
+}
+
+nav::before {
+  background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y),
+      rgba(255, 255, 255, 0.06),
+      transparent 40%);
+  z-index: 1;
+}
+
+nav::after {
+  background: radial-gradient(600px circle at var(--mouse-x) var(--mouse-y),
+      rgba(255, 255, 255, 0.05),
+      transparent 40%);
+  z-index: 0;
+}
+
+nav:hover::before,
+nav:hover::after {
+  opacity: 1;
+}
+/* =================== GLOW EFFECT ==================================== */
+
+
 
 .nav-container {
   display: flex;
@@ -56,6 +108,13 @@ body.dark-mode nav {
   /* Gap scaled from 4vh down to ~2.3vh */
   gap: 2.3vh;
   font-size: 2vh;
+}
+
+.navbar-link.active {
+  color: var(--selected-navoption);
+}
+body.dark-mode .navbar-link.active {
+  color: var(--harvard);
 }
 
 .nav-links li {
@@ -86,7 +145,7 @@ body.dark-mode .nav-links li a:hover {
 
 /* hamburgerr */
 .menu-toggle.open span:nth-child(1) {
-  transform: rotate(45deg) translate(-2px, 1px);
+  transform: rotate(45deg) translate(2px, 0px);
 }
 
 .menu-toggle.open span:nth-child(2) {
@@ -94,12 +153,12 @@ body.dark-mode .nav-links li a:hover {
 }
 
 .menu-toggle.open span:nth-child(3) {
-  transform: rotate(-45deg) translate(-3px, -2px);
+  transform: rotate(-45deg) translate(-5px, 0px);
 }
 
 .menu-toggle input:checked~span {
   opacity: 1;
-  transform: rotate(45deg) translate(-2px, -1px);
+  transform: rotate(45deg) translate(-7px, -1px);
   background: #fff;
 }
 
@@ -130,13 +189,16 @@ body.dark-mode .nav-links li a:hover {
   /* This can stay as px, or change if you want it to scale with vh */
   height: 3px;
   margin-bottom: 5px;
-  background: #333;
+  background: var(--nav-text-color-light);
   border-radius: 3px;
   z-index: 1;
-  transform-origin: 4px 0px;
+  transform-origin: 4px -2px;
   transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0),
     background 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0),
     opacity 0.55s ease;
+}
+body.dark-mode .menu-toggle span {
+  background: var(--text-color-dark);
 }
 
 /* Mobile Styles */
@@ -153,13 +215,17 @@ body.dark-mode .nav-links li a:hover {
     position: absolute;
     /* Top should match new nav height */
     top: 4vh;
-    background-color: #f0f0f0;
+    background-color: var(--harvard);
     /* Scaled padding from 2vh down to ~1.15vh */
     padding: 1.15vh;
     /* Same scaled box-shadow as above */
     box-shadow: 0 0.23vh 0.46vh rgba(0, 0, 0, 0.1);
     right: -100%;
     transition: right 0.5s ease;
+    color: var(--nav-text-color-light);
+  }
+  body.dark-mode .nav-links {
+    background-color: var(--navbar-bg-dark);
   }
 
   .nav-links.open {

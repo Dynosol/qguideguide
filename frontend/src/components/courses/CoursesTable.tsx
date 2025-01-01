@@ -1,3 +1,5 @@
+// src/components/CoursesTable/CoursesTable.tsx
+
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   MaterialReactTable,
@@ -6,20 +8,18 @@ import {
 } from 'material-react-table';
 import axios from 'axios';
 import { db, Course } from './db';
-import { googleSearchFilter } from '../../utils/searchHelper';
-import { useThemeContext } from '../../utils/themeHelper'; // Import Theme Context
+import { useThemeContext } from '../../utils/themeHelper';
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { colorPalettes } from '../../utils/colors';
+import { getCoursesColumns } from './columns'; // Import the columns
 
-// const INITIAL_BATCHSIZE = 100
-const USER_KEYPRESS_SEARCHDELAY = 100 // in milliseconds, preventing search updating per keypress which can lag out the querying
+const USER_KEYPRESS_SEARCHDELAY = 100; // in milliseconds
 
 const CoursesTable: React.FC = () => {
-  // Things that change
-  const { mode } = useThemeContext(); // Access current theme mode
+  const { mode } = useThemeContext();
   const [data, setData] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchValue, setSearchValue] = useState(''); // this one changes every keystroke, but doesn't update after each to lag everything
+  const [searchValue, setSearchValue] = useState('');
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnPinning, setColumnPinning] = useState<{ left?: string[] }>({ left: ['title'] });
 
@@ -47,19 +47,15 @@ const CoursesTable: React.FC = () => {
     [mode]
   );
 
-  /**
-   * Load data from IndexedDB or fetch from server
-   */
+  // Load data from IndexedDB or fetch from server
   useEffect(() => {
     (async () => {
       try {
         const count = await db.courses.count();
         if (count === 0) {
-          // No data in IndexedDB, fetch from server
           await fetchAndStoreCourses();
         } else {
-          // data is already in IndexedDB, we don't need to fetch
-          let storedCourses = await db.courses.toArray();
+          const storedCourses = await db.courses.toArray();
           setData(storedCourses);
           setIsLoading(false);
         }
@@ -70,51 +66,41 @@ const CoursesTable: React.FC = () => {
     })();
   }, []);
 
-  // wait one second after the user's last keypress
+  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
       setGlobalFilter(searchValue);
     }, USER_KEYPRESS_SEARCHDELAY);
     return () => clearTimeout(timer);
-  }, [searchValue, globalFilter]);
+  }, [searchValue]);
 
-    // Adjust columnPinning based on window size
+  // Adjust columnPinning based on window size
   useEffect(() => {
     const updateColumnPinning = () => {
-      console.log(window.innerWidth)
       if (window.innerWidth <= 850) {
-        // Mobile: No pinned columns
         setColumnPinning({});
       } else {
-        // Desktop: Pin the 'title' column
         setColumnPinning({ left: ['title'] });
       }
     };
 
-    // Initial check
     updateColumnPinning();
-
-    // Add event listener for window resize
     window.addEventListener('resize', updateColumnPinning);
-
-    // Cleanup event listener on unmount
     return () => window.removeEventListener('resize', updateColumnPinning);
   }, []);
 
-  // DEPRICATED
+  // Fetch and store courses
   const fetchAndStoreCourses = async () => {
     setIsLoading(true);
     try {
       const response = await axios.get<Course[]>('http://localhost:8000/api/');
       const courses: Course[] = response.data;
 
-      // Store in Dexie
       await db.courses.clear();
       await db.courses.bulkAdd(courses);
       console.log('Courses successfully stored in IndexedDB');
 
       setData(courses);
-
     } catch (error) {
       console.error('Error fetching or storing courses:', error);
     } finally {
@@ -122,299 +108,21 @@ const CoursesTable: React.FC = () => {
     }
   };
 
+  // Import columns using the helper function
   const columns = useMemo<MRT_ColumnDef<Course>[]>(
-    () => [
-      {
-        accessorKey: 'title',
-        header: 'Course Title',
-        filterFn: googleSearchFilter,
-        minSize: 400,
-      },
-      {
-        accessorKey: 'department',
-        header: 'Department',
-        // filterFn: googleSearchFilter,
-        filterVariant: 'multi-select',
-        filterFn: (row, id, filterValue: string[]) => {
-          if (!filterValue?.length) return true; // If no filters are selected, show all rows
-          const rowValue = row.getValue<string>(id);
-          return filterValue.some((value) => rowValue === value); // "OR" logic
-        },
-      },
-      {
-        accessorKey: 'instructor',
-        header: 'Instructor',
-        filterFn: googleSearchFilter,
-        minSize: 150,
-      },
-      {
-        accessorKey: 'term',
-        header: 'Term',
-        filterFn: googleSearchFilter,
-        minSize: 100,
-        filterVariant: 'multi-select',
-      },
-      {
-        accessorKey: 'blue_course_id',
-        header: 'Blue Course ID',
-        filterFn: googleSearchFilter,
-        minSize: 200,
-      },
-      {
-        accessorKey: 'responses',
-        header: 'Responses',
-        minSize: 200,
-      },
-      {
-        accessorKey: 'invited_responses',
-        header: 'Size',
-        filterVariant: 'range',
-        minSize: 150,
-      },
-      {
-        accessorKey: 'response_ratio',
-        header: 'Response Rate',
-        Cell: ({ cell }) =>
-          `${((cell.getValue() as number) * 100).toFixed(0)}%`,
-        minSize: 250,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 1, // Maximum percentage
-          min: 0,   // Minimum percentage
-          step: 0.01,  // Step in whole percentages
-          valueLabelFormat: (value) => `${(value * 100).toFixed(0)}%`, // Format value as percentage
-        },
-      },
-      {
-        accessorKey: 'course_mean_rating_bayesian_score',
-        header: 'Course Score',
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5,
-          min: 0,
-          step: 0.05,
-        },
-        minSize: 220,
-        Cell: ({ row }) => {
-          const {
-            course_mean_rating,
-            course_mean_rating_bayesian_score,
-            course_mean_grade,
-            course_mean_rating_bayesian_score_department,
-            course_mean_grade_department
-          } = row.original;
-
-          if (!course_mean_rating) {
-            return <em>No Data</em>;
-          }
-
-          return (
-            <div>
-              <span style={{ color: 'blue' }}>
-                {course_mean_rating_bayesian_score}
-                {' ('}{course_mean_grade}{')'}
-              </span>
-
-              {' | '}
-
-              <span style={{ color: 'green' }}>
-                {course_mean_rating_bayesian_score_department}
-                {' ('}<strong>{course_mean_grade_department}</strong>{')'}
-              </span>
-
-              {' | '}
-
-              <strong>{course_mean_rating}</strong>
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: 'materials_mean_rating',
-        header: 'Course Materials',
-        minSize: 250,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'assignments_mean_rating',
-        header: 'Assignments Quality',
-        minSize: 250,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-      },
-      {
-        accessorKey: 'feedback_mean_rating',
-        header: 'Quality of Feedback',
-        minSize: 250,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'section_mean_rating',
-        header: 'Section Rating',
-        minSize: 200,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'instructor_mean_rating',
-        header: 'Instructor Score',
-        minSize: 230,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'effective_mean_rating',
-        header: 'Instructor Effectiveness',
-        minSize: 250,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'accessible_mean_rating',
-        header: 'Instructor Accessibility',
-        minSize: 250,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'enthusiasm_mean_rating',
-        header: 'Instructor Enthusiasm',
-        minSize: 250,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'discussion_mean_rating',
-        header: 'Instructor Discussions',
-        minSize: 250,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'inst_feedback_mean_rating',
-        header: 'Quality of Instructor Feedback',
-        minSize: 300,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'returns_mean_rating',
-        header: 'Timely Assignment Returns',
-        minSize: 270,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'hours_mean_rating',
-        header: 'Mean Hours',
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'recommend_mean_rating',
-        header: 'Mean Recommendation',
-        minSize: 250,
-        filterVariant: 'range-slider',
-        muiFilterSliderProps: {
-          max: 5, //custom max (as opposed to faceted max)
-          min: 0, //custom min (as opposed to faceted min)
-          step: 0.1,
-        },
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'number_comments',
-        header: 'Number of Comments',
-        minSize: 250,
-        filterVariant: 'range',
-        Cell: ({ cell }) => (cell.getValue() as string) || "No Data"
-      },
-      {
-        accessorKey: 'url',
-        header: 'QGuide Link',
-        minSize: 200,
-        Cell: ({ cell }) => {
-          const url = cell.getValue() as string;
-          return (
-              <a href={url} target="_blank" rel="noreferrer">
-                QGuide Link
-              </a>
-          );
-        },
-      }
-      
-    ],
+    () => getCoursesColumns(mode),
     [mode]
   );
 
   const table = useMaterialReactTable({
     columns,
     data,
-    state: { // things that change after initial load
+    state: {
       isLoading,
       globalFilter,
       columnPinning,
     },
-    enableGlobalFilter: true, // big search box at the top
+    enableGlobalFilter: true,
     enableSorting: true,
     positionGlobalFilter: 'left',
     muiSearchTextFieldProps: {
@@ -426,15 +134,13 @@ const CoursesTable: React.FC = () => {
         console.info('Global search text:', event.target.value);
       },
     },
-    onGlobalFilterChange: (newValue) => { // forcing syncing, so the "clear search" button works
-      console.log("onGlobalFilterChange", newValue);
+    onGlobalFilterChange: (newValue) => {
+      console.log('onGlobalFilterChange', newValue);
       setGlobalFilter(newValue);
       setSearchValue(newValue);
     },
     muiPaginationProps: {
-      rowsPerPageOptions: [
-        10, 25, 50, 100, 250, 500, 1000, 5000, 11608,
-      ],
+      rowsPerPageOptions: [10, 25, 50, 100, 250, 500, 1000, 5000, 11608],
       showFirstButton: true,
       showLastButton: true,
     },
@@ -442,26 +148,17 @@ const CoursesTable: React.FC = () => {
     enableFacetedValues: true,
     initialState: {
       columnVisibility: {
-        // url: false,
-        // // department: false,
         responses: false,
         response_ratio: false,
         blue_course_id: false,
         materials_mean_rating: false,
-        // assignments_mean_rating: false,
         feedback_mean_rating: false,
-        // section_mean_rating: false,
-
         effective_mean_rating: false,
         accessible_mean_rating: false,
         enthusiasm_mean_rating: false,
         discussion_mean_rating: false,
         inst_feedback_mean_rating: false,
         returns_mean_rating: false,
-        
-        // hours_mean_rating: false,
-        // recommend_mean_rating: false,
-        // number_comments: false,
       },
       density: 'comfortable',
       showColumnFilters: true,
@@ -476,30 +173,29 @@ const CoursesTable: React.FC = () => {
       onClick: () => {
         const { url } = row.original;
         if (url) {
-          window.open(url, '_blank'); // Opens the qguide page in a new tab
+          window.open(url, '_blank');
         } else {
           console.warn('No URL found for the selected row');
         }
       },
       sx: {
         cursor: 'pointer',
-      }, // Change the cursor to indicate clickability
+      },
     }),
     muiTableContainerProps: { sx: { maxHeight: '79vh' } },
     muiTableBodyProps: {
       sx: {
-        //stripe the rows, make odd rows a darker color
         '& tr:nth-of-type(odd) > td': {
-          backgroundColor: mode === 'dark' ? '#303030': '#f5f5f5',
+          backgroundColor: colorPalettes[mode].stripes,
         },
       },
     },
   });
 
   return (
-      <MuiThemeProvider theme={tableTheme}>
-       <MaterialReactTable table={table} />
-      </MuiThemeProvider>
+    <MuiThemeProvider theme={tableTheme}>
+      <MaterialReactTable table={table} />
+    </MuiThemeProvider>
   );
 };
 

@@ -3,6 +3,8 @@ import { createTheme, ThemeProvider as MUIThemeProvider } from '@mui/material/st
 
 const HARVARD_COLOR = '#963b3c';
 
+export type ThemeMode = 'light' | 'dark';
+
 type ThemeContextValue = {
   mode: 'light' | 'dark';
   toggleMode: (isDark: boolean) => void;

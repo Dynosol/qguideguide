@@ -1,5 +1,8 @@
 :root {
+  --mouse-x: 0px;
+  --mouse-y: 0px;
   --navbar-bg-dark: rgba(29, 29, 29, 1);
+  --navbar-bg-dark-lighter: rgba(70, 70, 70, 0.8);
   --nav-text-color-light: #ffffff;
   --text-color-light: rgb(59, 59, 59);
   --text-color-dark: #ccc;
@@ -8,8 +11,10 @@
   --hamburger-color-light: #333;
   --hamburger-color-dark: #ffffff;
   --harvard: rgba(150, 59, 60, 1);
+  --harvard-lighter: rgba(189, 126, 127, 0.8);
   --greyish: rgba(230, 230, 237);
   --dark-greyish: #3c3c3c;
+  --selected-navoption: rgba(0, 0, 0, 0.5);
 }
 
 body {

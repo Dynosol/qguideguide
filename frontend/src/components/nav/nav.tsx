@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink } from 'react-router-dom';
 import '/src/assets/css/Nav.css';
 import { styled } from '@mui/material/styles';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -24,9 +24,6 @@ const IOSSwitch = styled((props: SwitchProps) => (
         backgroundColor: colorPalettes.light.harvard,
         opacity: 1,
         border: 0,
-        // ...theme.applyStyles('dark', {
-        //   backgroundColor: '#2ECA45',
-        // }),
       },
       '&.Mui-disabled + .MuiSwitch-track': {
         opacity: 0.5,
@@ -38,15 +35,9 @@ const IOSSwitch = styled((props: SwitchProps) => (
     },
     '&.Mui-disabled .MuiSwitch-thumb': {
       color: theme.palette.grey[100],
-      // ...theme.applyStyles('dark', {
-      //   color: theme.palette.grey[600],
-      // }),
     },
     '&.Mui-disabled + .MuiSwitch-track': {
       opacity: 0.7,
-      // ...theme.applyStyles('dark', {
-      //   opacity: 0.3,
-      // }),
     },
   },
   '& .MuiSwitch-thumb': {
@@ -55,21 +46,19 @@ const IOSSwitch = styled((props: SwitchProps) => (
     height: 22,
   },
   '& .MuiSwitch-track': {
-    borderRadius: 26 / 2,
+    borderRadius: 13,
     backgroundColor: '#E9E9EA',
     opacity: 1,
     transition: theme.transitions.create(['background-color'], {
       duration: 500,
     }),
-    // ...theme.applyStyles('dark', {
-    //   backgroundColor: '#39393D',
-    // }),
   },
 }));
 
 const Navbar: React.FC = () => {
-  const { mode, toggleMode } = useThemeContext(); // get from context
+  const { mode, toggleMode } = useThemeContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null); // Add this line
 
   const isDarkMode = mode === 'dark';
 
@@ -90,32 +79,43 @@ const Navbar: React.FC = () => {
     setIsMenuOpen((prev) => !prev);
   };
 
+  // Mouse move handler
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (navRef.current) {
+      const rect = navRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      navRef.current.style.setProperty('--mouse-x', `${x}px`);
+      navRef.current.style.setProperty('--mouse-y', `${y}px`);
+    }
+  };
 
   return (
-    <nav>
+    <nav ref={navRef} onMouseMove={handleMouseMove}>
       <div className="nav-container">
         <div id="logo" className="logo">
-          <Link to="/" className="logo-link">
+          <NavLink to="/" className="logo-link">
             <span>QGuideGuide</span>
-          </Link>
+          </NavLink>
         </div>
 
         <div className="toggle-modes">
-        <FormControlLabel
-          label={isDarkMode ? 'Dark Mode' : 'Light Mode'}
-          control={
-            <IOSSwitch
-              sx={{m: 1}}
-              checked={isDarkMode}
-              onChange={handleThemeToggle}
-            />
-          }
-        />
+          <FormControlLabel
+            label={isDarkMode ? 'Dark Mode' : 'Light Mode'}
+            control={
+              <IOSSwitch
+                sx={{ m: 1 }}
+                checked={isDarkMode}
+                onChange={handleThemeToggle}
+              />
+            }
+          />
         </div>
 
         <button
           className={`menu-toggle ${isMenuOpen ? 'open' : ''}`}
           onClick={toggleMenu}
+          aria-label="Toggle menu"
         >
           <span></span>
           <span></span>
@@ -124,16 +124,49 @@ const Navbar: React.FC = () => {
 
         <ul className={`nav-links ${isMenuOpen ? 'open' : ''}`}>
           <li className="navbar-item">
-            <Link to="/" className="navbar-link">Course Search Tool</Link>
+            <NavLink
+              to="/"
+              end
+              className={({ isActive }) =>
+                isActive ? 'navbar-link active' : 'navbar-link'
+              }
+              onClick={() => setIsMenuOpen(false)} // Close menu on link click
+            >
+              Course Search Tool
+            </NavLink>
           </li>
           <li className="navbar-item">
-            <Link to="/professors" className="navbar-link">Professor Rankings</Link>
+            <NavLink
+              to="/professors"
+              className={({ isActive }) =>
+                isActive ? 'navbar-link active' : 'navbar-link'
+              }
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Professor Rankings
+            </NavLink>
           </li>
           <li className="navbar-item">
-            <Link to="/about" className="navbar-link">About / Help</Link>
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                isActive ? 'navbar-link active' : 'navbar-link'
+              }
+              onClick={() => setIsMenuOpen(false)}
+            >
+              About / Help
+            </NavLink>
           </li>
           <li className="navbar-item">
-            <Link to="/contact" className="navbar-link">Contact</Link>
+            <NavLink
+              to="/contact"
+              className={({ isActive }) =>
+                isActive ? 'navbar-link active' : 'navbar-link'
+              }
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Contact
+            </NavLink>
           </li>
         </ul>
       </div>
