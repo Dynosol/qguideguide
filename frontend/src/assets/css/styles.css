@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --mouse-x: 0px;
   --mouse-y: 0px;
@@ -15,6 +19,13 @@
   --greyish: rgba(230, 230, 237);
   --dark-greyish: #3c3c3c;
   --selected-navoption: rgba(0, 0, 0, 0.5);
+}
+
+body.light{
+  --dropdown-bg: var(--text-color-dark);
+}
+body.dark {
+  --dropdown-bg: var(--navbar-bg-dark);
 }
 
 body {
@@ -49,4 +60,10 @@ body.dark-mode .non-navbar {
   border-radius: 0.5vh;
   width: 0.6vh;
   height: 0.6vh;
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
 }

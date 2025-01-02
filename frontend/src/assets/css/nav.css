@@ -41,7 +41,6 @@ nav {
   background-color: var(--harvard);
   /* background: linear-gradient(to right, var(--harvard) 40%, var(--harvard-lighter)); */
   border-bottom: 1px solid black;
-  overflow: hidden;
 }
 body.dark-mode nav {
   background: var(--navbar-bg-dark);

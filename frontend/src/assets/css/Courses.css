@@ -22,8 +22,25 @@ body.dark-mode .main-table {
   padding: 0 2vw;
 
   color: var(--text-color-light);
+  justify-content: space-between;
+
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  white-space: nowrap;
+
 }
 body.dark-mode .guide {
   background-color: var(--dark-greyish);
   color: var(--text-color-dark);
+}
+
+
+.guide-link {
+  text-decoration: none; /* Remove underline */
+  color: inherit;        /* Inherit color from parent */
+  cursor: pointer;       /* Change cursor to pointer on hover */
+}
+
+.guide-link:hover {
+  text-decoration: underline; /* Add underline on hover for better UX */
 }

@@ -14,8 +14,11 @@ import { colorPalettes } from '../../utils/colors';
 import { getCoursesColumns } from './columns'; // Import the columns
 
 const USER_KEYPRESS_SEARCHDELAY = 100; // in milliseconds
+interface CoursesTableProps {
+  position: string; // Add position prop
+}
 
-const CoursesTable: React.FC = () => {
+const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
   const { mode } = useThemeContext();
   const [data, setData] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -110,8 +113,8 @@ const CoursesTable: React.FC = () => {
 
   // Import columns using the helper function
   const columns = useMemo<MRT_ColumnDef<Course>[]>(
-    () => getCoursesColumns(mode),
-    [mode]
+    () => getCoursesColumns(mode, position),
+    [mode, position]
   );
 
   const table = useMaterialReactTable({

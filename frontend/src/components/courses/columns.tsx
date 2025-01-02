@@ -10,9 +10,9 @@ const createRatingCell = (mode: ThemeMode, ratingKey: keyof Course) => ({
     const {
       [`${ratingKey}`]: rating,
       [`${ratingKey}_bayesian_score`]: bayesianScore,
-      [`${ratingKey.replace('rating', 'grade')}`]: grade, // Correct mapping for grade
+      [`${ratingKey.replace('rating', 'grade')}`]: grade, 
       [`${ratingKey}_bayesian_score_department`]: deptBayesianScore,
-      [`${ratingKey.replace('rating', 'grade')}_department`]: deptGrade, // Correct mapping for department grade
+      [`${ratingKey.replace('rating', 'grade')}_department`]: deptGrade, 
     } = row.original;
 
     if (!rating) {
@@ -21,13 +21,13 @@ const createRatingCell = (mode: ThemeMode, ratingKey: keyof Course) => ({
 
     return (
       <div>
-        <span style={{ color: colorPalettes[mode].harvard }}>
+        <span>
           <strong>
             {bayesianScore} ({grade})
           </strong>
         </span>
         {' | '}
-        <span>
+        <span style={{ color: colorPalettes[mode].harvard }}>
           {deptBayesianScore} (<strong>{deptGrade}</strong>)
         </span>
         {' | '}
@@ -53,7 +53,27 @@ const ratingDefinitions: { key: keyof Course; header: string, minSize: number }[
 ];
 
 
-export const getCoursesColumns = (mode: ThemeMode): MRT_ColumnDef<Course>[] => {
+export const getCoursesColumns = (
+  mode: ThemeMode,
+  position: string,
+  ): MRT_ColumnDef<Course>[] => {
+  // THIS IS FROM THE DROPDOWN AND MODIFIES WHAT THE COLUMNS ARE FILTERED BY
+  const getAccessorSuffix = (position: string) => {
+    switch (position) {
+      case "weighted":
+        return "_bayesian_score";
+      case "weighted-department":
+        return "_bayesian_score_department";
+      case "naive":
+        return ""; // Assuming this refers to the raw rating
+      default:
+        return "_bayesian_score"; // Fallback
+    }
+  };
+
+  const accessorSuffix = getAccessorSuffix(position);
+
+
   // Base columns that are not ratings
   const baseColumns: MRT_ColumnDef<Course>[] = [
     {
@@ -70,7 +90,7 @@ export const getCoursesColumns = (mode: ThemeMode): MRT_ColumnDef<Course>[] => {
         if (!filterValue?.length) return true;
         const rowValue = row.getValue<string>(id);
         return filterValue.some((value) => rowValue === value);
-      },
+      }
     },
     {
       accessorKey: 'instructor',
@@ -119,7 +139,7 @@ export const getCoursesColumns = (mode: ThemeMode): MRT_ColumnDef<Course>[] => {
 
   // Dynamically generate rating columns
   const ratingColumns: MRT_ColumnDef<Course>[] = ratingDefinitions.map((rating) => ({
-    accessorKey: `${rating.key}_bayesian_score`,
+    accessorKey: `${rating.key}${accessorSuffix}`,
     header: rating.header,
     filterVariant: 'range-slider',
     muiFilterSliderProps: {
@@ -168,7 +188,7 @@ export const getCoursesColumns = (mode: ThemeMode): MRT_ColumnDef<Course>[] => {
         const url = cell.getValue() as string;
         return (
           <a href={url} target="_blank" rel="noreferrer">
-            <i>QGuide Link</i>
+            QGuide Link
           </a>
         );
       },

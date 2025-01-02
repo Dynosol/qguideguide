@@ -1,7 +1,8 @@
 import React, { createContext, useState, useContext, useMemo } from 'react';
 import { createTheme, ThemeProvider as MUIThemeProvider } from '@mui/material/styles';
+import { colorPalettes } from './colors';
 
-const HARVARD_COLOR = '#963b3c';
+// const HARVARD_COLOR = '#963b3c';
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -35,7 +36,7 @@ export const ThemeContextProvider: React.FC<{ children: React.ReactNode }> = ({ 
     palette: {
       mode,
       primary: {
-        main: HARVARD_COLOR,
+        main: colorPalettes[mode].harvard,
       },
     },
   }), [mode]);
