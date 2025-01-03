@@ -63,11 +63,14 @@ const Navbar: React.FC = () => {
   const isDarkMode = mode === 'dark';
 
   useEffect(() => {
-    // apply body class for dark mode
+    const root = window.document.documentElement;
+    // apply body class for dark mode (two things here because I'm just adding things onto the project with no planning really involved at all)
     if (isDarkMode) {
       document.body.classList.add('dark-mode');
+      root.classList.add('dark');
     } else {
       document.body.classList.remove('dark-mode');
+      root.classList.remove('dark');
     }
   }, [isDarkMode]);
 
@@ -143,7 +146,7 @@ const Navbar: React.FC = () => {
               }
               onClick={() => setIsMenuOpen(false)}
             >
-              Professor Rankings
+              Professor Scores
             </NavLink>
           </li>
           <li className="navbar-item">
@@ -155,17 +158,6 @@ const Navbar: React.FC = () => {
               onClick={() => setIsMenuOpen(false)}
             >
               About / Help
-            </NavLink>
-          </li>
-          <li className="navbar-item">
-            <NavLink
-              to="/contact"
-              className={({ isActive }) =>
-                isActive ? 'navbar-link active' : 'navbar-link'
-              }
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Contact
             </NavLink>
           </li>
         </ul>

@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     # 'about', depricated!
     'core',
     # 'contact', depricated!
+    'professors',
     'csp',
     'django_recaptcha',
     'corsheaders',
@@ -64,6 +65,16 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 50,
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -74,6 +85,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'csp.middleware.CSPMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',  # Cache responses before other middlewares
+    'django.middleware.common.CommonMiddleware',  # Handles standard HTTP-related tasks
+    'django.middleware.cache.FetchFromCacheMiddleware',  # Fetch from cache
 ]
 
 CORS_ALLOWED_ORIGINS = [

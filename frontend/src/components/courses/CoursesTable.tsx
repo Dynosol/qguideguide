@@ -154,14 +154,40 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
         responses: false,
         response_ratio: false,
         blue_course_id: false,
+
         materials_mean_rating: false,
+        materials_mean_rating_bayesian_score: false,
+        materials_mean_rating_bayesian_score_department: false,
+
         feedback_mean_rating: false,
+        feedback_mean_rating_bayesian_score: false,
+        feedback_mean_rating_bayesian_score_department: false,
+
         effective_mean_rating: false,
+        effective_mean_rating_bayesian_score: false,
+        effective_mean_rating_bayesian_score_department: false,
+
         accessible_mean_rating: false,
+        accessible_mean_rating_bayesian_score: false,
+        accessible_mean_rating_bayesian_score_department: false,
+
         enthusiasm_mean_rating: false,
+        enthusiasm_mean_rating_bayesian_score: false,
+        enthusiasm_mean_rating_bayesian_score_department: false,
+
         discussion_mean_rating: false,
+        discussion_mean_rating_bayesian_score: false,
+        discussion_mean_rating_bayesian_score_department: false,
+
         inst_feedback_mean_rating: false,
+        inst_feedback_mean_rating_bayesian_score: false,
+        inst_feedback_mean_rating_bayesian_score_department: false,
+
         returns_mean_rating: false,
+        returns_mean_rating_bayesian_score: false,
+        returns_mean_rating_bayesian_score_department: false,
+
+        
       },
       density: 'comfortable',
       showColumnFilters: true,

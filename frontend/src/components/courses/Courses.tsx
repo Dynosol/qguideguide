@@ -82,7 +82,7 @@ const Courses: React.FC = () => {
       </div>
 
       <div className="main-table">
-          <CoursesTable position={position}/>
+          <CoursesTable key={ position } position={position}/>
       </div>
     </div>
   );

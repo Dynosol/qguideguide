@@ -5,7 +5,6 @@ import Navbar from './components/nav/Nav';
 import { ThemeContextProvider } from './utils/themeHelper';
 import Courses from './components/courses/Courses.tsx';
 import About from './components/about/About.tsx';
-import Contact from './components/contact/Contact.tsx';
   
 
 const App: React.FC = () => {
@@ -16,7 +15,6 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Courses />} />
             <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
           </Routes>
       </Router>
     </ThemeContextProvider>

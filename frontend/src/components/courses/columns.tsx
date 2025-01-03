@@ -3,6 +3,7 @@ import { Course } from './db';
 import { googleSearchFilter } from '../../utils/searchHelper';
 import { colorPalettes } from '../../utils/colors';
 import { ThemeMode } from '../../utils/themeHelper';
+import Tooltip from '@mui/material/Tooltip';
 
 // Helper function to create rating cells
 const createRatingCell = (mode: ThemeMode, ratingKey: keyof Course) => ({
@@ -70,8 +71,7 @@ export const getCoursesColumns = (
         return "_bayesian_score"; // Fallback
     }
   };
-
-  const accessorSuffix = getAccessorSuffix(position);
+  
 
 
   // Base columns that are not ratings
@@ -139,7 +139,7 @@ export const getCoursesColumns = (
 
   // Dynamically generate rating columns
   const ratingColumns: MRT_ColumnDef<Course>[] = ratingDefinitions.map((rating) => ({
-    accessorKey: `${rating.key}${accessorSuffix}`,
+    accessorKey: `${rating.key}${getAccessorSuffix(position)}`,
     header: rating.header,
     filterVariant: 'range-slider',
     muiFilterSliderProps: {
@@ -159,7 +159,13 @@ export const getCoursesColumns = (
       muiFilterSliderProps: {
         step: 0.1,
       },
-      Cell: ({ cell }: any) => <i>{cell.getValue() || 'No Data'}</i>,
+      Cell: ({ cell }: any) => (
+        <Tooltip title="Mean Hours" placement="top">
+          <i>{cell.getValue() || 'No Data'}</i>
+
+          {/* <img src={hoursExampleImage}/> */}
+        </Tooltip>
+      ),
     },
     {
       accessorKey: 'recommend_mean_rating',
@@ -187,7 +193,7 @@ export const getCoursesColumns = (
       Cell: ({ cell }: any) => {
         const url = cell.getValue() as string;
         return (
-          <a href={url} target="_blank" rel="noreferrer">
+          <a href={url} target="_blank" rel="noreferrer" className="guide-link">
             QGuide Link
           </a>
         );
@@ -196,5 +202,11 @@ export const getCoursesColumns = (
   ];
 
   // Combine all columns
-  return [...baseColumns, ...ratingColumns, ...additionalColumns];
+  const columns = [
+    ...baseColumns,
+    ...ratingColumns,
+    ...additionalColumns,
+  ];
+
+  return columns;
 };
