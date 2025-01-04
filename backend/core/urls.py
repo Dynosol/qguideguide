@@ -29,5 +29,6 @@ urlpatterns = [
     # path('', TemplateView.as_view(template_name='index.html'), name='home'),
     
     # post react-ification
-    path('api/', include('courses.urls')),
+    path('api/courses/', include('courses.urls')),
+    path('api/professors/', include('professors.urls'))
 ]
