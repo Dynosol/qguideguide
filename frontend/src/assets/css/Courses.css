@@ -39,6 +39,10 @@ body.dark-mode .guide {
   text-decoration: none; /* Remove underline */
   color: inherit;        /* Inherit color from parent */
   cursor: pointer;       /* Change cursor to pointer on hover */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .guide-link:hover {

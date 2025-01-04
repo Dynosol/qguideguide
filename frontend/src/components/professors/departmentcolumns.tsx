@@ -32,7 +32,7 @@ export const getDepartmentsColumns = (mode: 'light' | 'dark'): ColumnDef<Departm
           {getValue<number>()?.toFixed(3)} 
         </span>
         <span>
-          &nbsp; (Average Rank: {getOrdinalSuffix(Math.round(row.original.empirical_bayes_rank))})
+          &nbsp; (Avg. Rank: {getOrdinalSuffix(Math.round(row.original.empirical_bayes_rank))})
         </span>
       </strong>
     ),

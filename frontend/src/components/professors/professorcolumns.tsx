@@ -2,6 +2,9 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Professor } from './db';
 import { colorPalettes } from '../../utils/colors';
 // import { googleSearchFilter } from '@/utils/searchHelper';
+import { ArrowUpDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
+
 
 const getOrdinalSuffix = (rank: number): string => {
   const lastDigit = rank % 10;
@@ -34,7 +37,17 @@ export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professo
   },
   {
     accessorKey: 'empirical_bayes_average',
-    header: 'Overall Score',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Rating
+          <ArrowUpDown className="ml-2" />
+        </Button>
+      )
+    },
     cell: ({ row, getValue }) => (
       <strong>
         <span style={{ color: colorPalettes[mode].harvard}}> 
@@ -46,16 +59,21 @@ export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professo
       </strong>
     ),
   },
-//   {
-//     accessorKey: 'intra_department_eb_average',
-//     header: 'Department Score',
-//     size: 160,
-//     cell: ({ getValue }) => (
-//       <span style={{ color: colorPalettes[mode].harvard }}>
-//         <strong>{getValue<number>()?.toFixed(2)}</strong>
-//       </span>
-//     ),
-//   },
+  {
+    accessorKey: 'intra_department_eb_average',
+    header: 'Department Score',
+    size: 160,
+    cell: ({ row, getValue }) => (
+      <strong>
+        <span style={{ color: colorPalettes[mode].harvard }}>
+          <strong>{getValue<number>()?.toFixed(3)}</strong>
+        </span>
+        <span>
+            &nbsp; ({row.original.intra_department_letter_grade}) ({getOrdinalSuffix(row.original.intra_department_ranks)})
+        </span>
+      </strong>
+    ),
+  },
 //   {
 //     accessorKey: 'intra_department_letter_grade',
 //     header: 'Department Grade',

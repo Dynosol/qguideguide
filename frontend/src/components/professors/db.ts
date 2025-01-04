@@ -10,7 +10,7 @@ export interface Professor {
   overall_letter_grade: string;
   intra_department_eb_average: number;
   intra_department_letter_grade: string;
-  intra_department_ranks: string;
+  intra_department_ranks: number;
   lastUpdated?: string;
 }
 

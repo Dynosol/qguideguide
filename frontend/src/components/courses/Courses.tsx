@@ -40,7 +40,7 @@ const Courses: React.FC = () => {
       <div className="guide">
         <i>
           <Link to="/about" className="guide-link">
-            <strong>Bold</strong> is a weighted score across all courses, <span style={{ color: colorPalettes[mode].harvard}}><b>Red</b></span> is department-weighted, and italics are a naive average.
+            <strong>Bold</strong>&nbsp;is a weighted score across all courses, &nbsp;<span style={{ color: colorPalettes[mode].harvard}}><b>Red</b></span>&nbsp;is department-weighted, and italics are a naive average.
           </Link>
         </i>
 
