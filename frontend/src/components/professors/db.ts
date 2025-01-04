@@ -17,14 +17,14 @@ export interface Professor {
 export interface Department {
   id: number;
   name: string;
-  mean_empirical_bayes_average: number;
-  mean_empirical_bayes_rank: number;
+  empirical_bayes_average: number;
+  empirical_bayes_rank: number;
 }
 
 export class ProfessorDatabase extends Dexie {
   professors!: Table<Professor>;
   departments!: Table<Department>;
-  metadata!: Table<{ key: string; value: any }>;
+  metadata!: Table<{ key: string; value: string }>;
 
   constructor() {
     super('professorsDatabase');

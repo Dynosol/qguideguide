@@ -91,6 +91,8 @@ class Course(models.Model):
     inst_feedback_mean_grade_department = models.CharField(max_length=2, null=True, blank=True)
     returns_mean_grade_department = models.CharField(max_length=2, null=True, blank=True)
 
+    modified_at = models.DateTimeField(auto_now=True)
+
 
 class CourseFeedbackQuestion(models.Model):
     course = models.ForeignKey(Course, related_name='course_feedback_questions', on_delete=models.CASCADE)

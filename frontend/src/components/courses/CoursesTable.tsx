@@ -54,14 +54,25 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
   useEffect(() => {
     (async () => {
       try {
-        const count = await db.courses.count();
-        if (count === 0) {
-          await fetchAndStoreCourses();
-        } else {
-          const storedCourses = await db.courses.toArray();
-          setData(storedCourses);
-          setIsLoading(false);
+        // First check if we have any local data
+        const localData = await db.courses.toArray();
+        const lastUpdateTime = await db.metadata.get('lastUpdate');
+
+        if (localData.length > 0 && lastUpdateTime) {
+          // Check with the server if data has been updated
+          const response = await axios.head('http://localhost:8000/api/courses/');
+          const serverLastModified = response.headers['last-modified'];
+
+          if (serverLastModified && new Date(serverLastModified) <= new Date(lastUpdateTime.value)) {
+            // Use cached data if server hasn't updated
+            setData(localData);
+            setIsLoading(false);
+            return;
+          }
         }
+
+        // If we reach here, we need to fetch new data
+        await fetchAndStoreCourses();
       } catch (error) {
         console.error('Error loading from Dexie', error);
         setIsLoading(false);
@@ -96,13 +107,19 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
   const fetchAndStoreCourses = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get<Course[]>('http://localhost:8000/api/');
+      const response = await axios.get<Course[]>('http://localhost:8000/api/courses/');
       const courses: Course[] = response.data;
 
-      await db.courses.clear();
-      await db.courses.bulkAdd(courses);
-      console.log('Courses successfully stored in IndexedDB');
+      // Store the current timestamp
+      const currentTime = new Date().toISOString();
 
+      await db.transaction('rw', db.courses, db.metadata, async () => {
+        await db.courses.clear();
+        await db.courses.bulkAdd(courses);
+        await db.metadata.put({ key: 'lastUpdate', value: currentTime });
+      });
+
+      console.log('Courses successfully stored in IndexedDB');
       setData(courses);
     } catch (error) {
       console.error('Error fetching or storing courses:', error);

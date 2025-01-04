@@ -13,7 +13,7 @@ const Prof: React.FC = () => {
       <div className="guide">
         <i>
           <Link to="/about" className="guide-link">
-            Each number is calculated via empirical bayes (normal prior) across every course a professor has taught, based on the "Evaluate your Instructor overall" question.
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Each number is calculated via empirical bayes across every course an instructor has taught based on the "Evaluate your Instructor overall" question. Department scores are naive averages.
           </Link>
         </i>
       </div>

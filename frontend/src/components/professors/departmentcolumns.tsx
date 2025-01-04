@@ -1,37 +1,40 @@
-// departmentcolumns.tsx
-
 import { ColumnDef } from '@tanstack/react-table';
 import { Department } from './db';
 import { colorPalettes } from '../../utils/colors';
 
-// Utility function to format numbers to two decimal places
-const formatNumber = (value: number): string => {
-  return value.toFixed(2);
+const getOrdinalSuffix = (rank: number): string => {
+  const lastDigit = rank % 10;
+  const lastTwoDigits = rank % 100;
+  
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
+    return rank + 'th';
+  }
+  
+  switch (lastDigit) {
+    case 1: return rank + 'st';
+    case 2: return rank + 'nd';
+    case 3: return rank + 'rd';
+    default: return rank + 'th';
+  }
 };
 
-// Exported function to get department columns based on the current theme mode
 export const getDepartmentsColumns = (mode: 'light' | 'dark'): ColumnDef<Department>[] => [
   {
     accessorKey: 'name',
-    header: 'Name',
-    cell: ({ getValue }) => getValue<string>(),
+    header: 'Department',
   },
   {
-    accessorKey: 'mean_empirical_bayes_average',
-    header: 'Mean EB Average',
-    cell: ({ getValue }) => (
-      <span style={{ color: colorPalettes[mode].harvard }}>
-        {formatNumber(getValue<number>())}
-      </span>
+    accessorKey: 'empirical_bayes_average',
+    header: 'Average Score',
+    cell: ({ row, getValue }) => (
+      <strong>
+        <span style={{ color: colorPalettes[mode].harvard}}> 
+          {getValue<number>()?.toFixed(3)} 
+        </span>
+        <span>
+          &nbsp; (Average Rank: {getOrdinalSuffix(Math.round(row.original.empirical_bayes_rank))})
+        </span>
+      </strong>
     ),
-  },
-  {
-    accessorKey: 'mean_empirical_bayes_rank',
-    header: 'Mean EB Rank',
-    cell: ({ getValue }) => (
-      <span>
-        {formatNumber(getValue<number>())}
-      </span>
-    ),
-  },
+  }
 ];
