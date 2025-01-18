@@ -212,13 +212,13 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
       },
     }),
     muiTableContainerProps: { sx: { maxHeight: '79vh' } },
-    muiTableBodyProps: {
-      sx: {
-        '& tr:nth-of-type(odd) > td': {
-          backgroundColor: colorPalettes[mode].stripes,
-        },
-      },
-    },
+    // muiTableBodyProps: {
+    //   sx: {
+    //     '& tr:nth-of-type(odd) > td': {
+    //       backgroundColor: colorPalettes[mode].stripes,
+    //     },
+    //   },
+    // },
   });
 
   return (

@@ -101,9 +101,13 @@ export const getCoursesColumns = (
     {
       accessorKey: 'term',
       header: 'Term',
-      filterFn: googleSearchFilter,
       minSize: 100,
       filterVariant: 'multi-select',
+      filterFn: (row, id, filterValue: string[]) => {
+        if (!filterValue?.length) return true;
+        const rowValue = row.getValue<string>(id);
+        return filterValue.some((value) => rowValue === value);
+      }
     },
     {
       accessorKey: 'blue_course_id',
