@@ -36,7 +36,12 @@ interface DepartmentsTableProps {
 }
 
 export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({ data, isLoading }) => {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    {
+      id: "empirical_bayes_average",
+      desc: true
+    }
+  ]);
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const { mode } = useThemeContext();
 
@@ -48,14 +53,14 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({ data, isLoad
   const table = useReactTable({
     data,
     columns,
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
     state: {
       sorting,
       columnVisibility,
     },
+    onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     enableGlobalFilter: true,
   });
 

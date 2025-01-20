@@ -6,19 +6,33 @@ import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 
-const getOrdinalSuffix = (rank: number): string => {
-  const lastDigit = rank % 10;
-  const lastTwoDigits = rank % 100;
+const getOrdinalSuffix = (rank: number | string): string => {
+  // Convert to number if string and log the input type
+  console.log('Rank input type:', typeof rank, 'Value:', rank);
+  
+  const rankNum = typeof rank === 'string' ? parseFloat(rank) : rank;
+  
+  // Ensure we have a valid number
+  if (typeof rankNum !== 'number' || isNaN(rankNum)) {
+    console.warn('Invalid rank provided to getOrdinalSuffix:', rank);
+    return 'N/A';
+  }
+
+  // Ensure we're working with a positive integer
+  const finalRank = Math.abs(Math.round(rankNum));
+  
+  const lastDigit = finalRank % 10;
+  const lastTwoDigits = finalRank % 100;
   
   if (lastTwoDigits >= 11 && lastTwoDigits <= 13) {
-    return rank + 'th';
+    return finalRank + 'th';
   }
   
   switch (lastDigit) {
-    case 1: return rank + 'st';
-    case 2: return rank + 'nd';
-    case 3: return rank + 'rd';
-    default: return rank + 'th';
+    case 1: return finalRank + 'st';
+    case 2: return finalRank + 'nd';
+    case 3: return finalRank + 'rd';
+    default: return finalRank + 'th';
   }
 };
 
@@ -34,6 +48,8 @@ export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professo
   {
     accessorKey: 'total_ratings',
     header: 'Total Ratings',
+    minSize: 50,
+    maxSize: 100,
   },
   {
     accessorKey: 'empirical_bayes_average',
@@ -63,16 +79,25 @@ export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professo
     accessorKey: 'intra_department_eb_average',
     header: 'Department Score',
     size: 160,
-    cell: ({ row, getValue }) => (
-      <strong>
-        <span style={{ color: colorPalettes[mode].harvard }}>
-          <strong>{getValue<number>()?.toFixed(3)}</strong>
-        </span>
-        <span>
-            &nbsp; ({row.original.intra_department_letter_grade}) ({getOrdinalSuffix(row.original.intra_department_ranks)})
-        </span>
-      </strong>
-    ),
+    cell: ({ row, getValue }) => {
+      // Add debug logging for intra_department_ranks
+      console.log('Intra department ranks:', {
+        value: row.original.intra_department_ranks,
+        type: typeof row.original.intra_department_ranks,
+        row: row.original
+      });
+      
+      return (
+        <strong>
+          <span style={{ color: colorPalettes[mode].harvard }}>
+            <strong>{getValue<number>()?.toFixed(3)}</strong>
+          </span>
+          <span>
+              &nbsp; ({row.original.intra_department_letter_grade}) ({(row.original.intra_department_ranks)})
+          </span>
+        </strong>
+      );
+    },
   },
 //   {
 //     accessorKey: 'intra_department_letter_grade',

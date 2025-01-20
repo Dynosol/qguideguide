@@ -29,7 +29,7 @@
 
   const SkeletonRow = () => (
     <TableRow>
-      {Array.from({ length: 4 }).map((_, index) => (
+      {Array.from({ length: 5 }).map((_, index) => (
         <TableCell key={index}>
           <div className="h-4 w-full animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
         </TableCell>
