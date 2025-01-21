@@ -8,9 +8,7 @@ export interface Professor {
   empirical_bayes_average: number;
   empirical_bayes_rank: number;
   overall_letter_grade: string;
-  intra_department_eb_average: number;
-  intra_department_letter_grade: string;
-  intra_department_ranks: number;
+  intra_department_metrics: string;
   lastUpdated?: string;
 }
 

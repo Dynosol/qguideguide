@@ -20,9 +20,7 @@ class Professor(models.Model):
     empirical_bayes_average = models.FloatField(null=True, blank=True)
     empirical_bayes_rank = models.IntegerField(null=True, blank=True)
     overall_letter_grade = models.CharField(max_length=2, null=True, blank=True)
-    intra_department_eb_average = models.FloatField(null=True, blank=True)
-    intra_department_letter_grade = models.CharField(max_length=2, null=True, blank=True)
-    intra_department_ranks = models.CharField(max_length=255, null=True, blank=True)
+    intra_department_metrics= models.CharField(max_length=1000, null=True, blank=True)
     modified_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

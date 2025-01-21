@@ -87,7 +87,9 @@ const About: React.FC = () => {
             { 
               title: 'Professor Scores Explained',
               subtitle: (<>
-              
+              Treat this page with a grain of salt. "Total Ratings" stands for the number of individual QGuide responses for any course that instructor has ever taught.
+              "Rating" is a weighted score compared to all other instructors that have ever taught a course (in the data range) on the "Evaluate your Instructor overall." question (once again, treat the specific "ratings" with a grain of salt).
+              "Department Score" represents the weighted scores 
               </>)
             },
             {

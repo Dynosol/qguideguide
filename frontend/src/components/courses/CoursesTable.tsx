@@ -101,7 +101,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
 
       await db.courses.clear();
       await db.courses.bulkAdd(courses);
-      console.log('Courses successfully stored in IndexedDB');
+      // console.log('Courses successfully stored in IndexedDB');
 
       setData(courses);
     } catch (error) {

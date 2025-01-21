@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 
 const getOrdinalSuffix = (rank: number | string): string => {
   // Convert to number if string and log the input type
-  console.log('Rank input type:', typeof rank, 'Value:', rank);
+  // console.log('Rank input type:', typeof rank, 'Value:', rank);
   
   const rankNum = typeof rank === 'string' ? parseFloat(rank) : rank;
   
@@ -34,6 +34,41 @@ const getOrdinalSuffix = (rank: number | string): string => {
     case 3: return finalRank + 'rd';
     default: return finalRank + 'th';
   }
+};
+
+const parseDepartmentMetrics = (metrics: string): { dept: string, avg: number, grade: string, rank: string } | null => {
+  if (!metrics) return null;
+  
+  try {
+    // Handle both old and new formats
+    // Old format: "COMPLIT: 4 (B-, Rank: 15)"
+    // New format: "COMPLIT: 4"
+    const [dept, rest] = metrics.split(': ');
+    
+    if (rest.includes('(')) {
+      // New format with grade and rank
+      const match = rest.match(/(\d+\.\d+)\s*\(([A-Z][+-]?),\s*Rank:\s*(\d+)\)/);
+      if (match) {
+        return {
+          dept: dept.trim(),
+          avg: parseFloat(match[1]),
+          grade: match[2],
+          rank: match[3]
+        };
+      }
+    } else {
+      // Old format with just the average
+      return {
+        dept: dept.trim(),
+        avg: parseFloat(rest),
+        grade: '',
+        rank: ''
+      };
+    }
+  } catch (error) {
+    console.error('Error parsing department metrics:', error);
+  }
+  return null;
 };
 
 export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professor>[] => [
@@ -76,26 +111,34 @@ export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professo
     ),
   },
   {
-    accessorKey: 'intra_department_eb_average',
-    header: 'Department Score',
+    accessorKey: 'department_metrics',
+    header: 'Department Metrics',
     size: 160,
-    cell: ({ row, getValue }) => {
-      // Add debug logging for intra_department_ranks
-      console.log('Intra department ranks:', {
-        value: row.original.intra_department_ranks,
-        type: typeof row.original.intra_department_ranks,
-        row: row.original
-      });
-      
+    cell: ({ row }) => {
+      const metrics = row.getValue('department_metrics') as string | undefined;
+      if (!metrics) return null;
+
+      // Handle multiple departments (split by |)
+      const departmentMetrics = metrics.split(' | ').map((metric: string) => {
+        const parsed = parseDepartmentMetrics(metric);
+        if (parsed) {
+          return `${parsed.dept}: ${parsed.avg.toFixed(3)} (${parsed.grade}, ${getOrdinalSuffix(parsed.rank)})`;
+        }
+        return null;
+      }).filter(Boolean);
+
       return (
-        <strong>
-          <span style={{ color: colorPalettes[mode].harvard }}>
-            <strong>{getValue<number>()?.toFixed(3)}</strong>
-          </span>
-          <span>
-              &nbsp; ({row.original.intra_department_letter_grade}) ({(row.original.intra_department_ranks)})
-          </span>
-        </strong>
+        <div>
+          {departmentMetrics.map((metric, index) => (
+            <div key={index}>
+              <strong>
+                <span style={{ color: colorPalettes[mode].harvard }}>
+                  {metric}
+                </span>
+              </strong>
+            </div>
+          ))}
+        </div>
       );
     },
   },

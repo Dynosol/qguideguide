@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 
 const getOrdinalSuffix = (rank: number | string): string => {
   // Convert to number if string and log the input type
-  console.log('Rank input type:', typeof rank, 'Value:', rank);
+  // console.log('Rank input type:', typeof rank, 'Value:', rank);
   
   const rankNum = typeof rank === 'string' ? parseFloat(rank) : rank;
   

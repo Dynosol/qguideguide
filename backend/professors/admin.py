@@ -14,9 +14,7 @@ class ProfessorAdmin(admin.ModelAdmin):
         'empirical_bayes_average',
         'empirical_bayes_rank',
         'overall_letter_grade',
-        'intra_department_eb_average',
-        'intra_department_letter_grade',
-        'intra_department_ranks'
+        'intra_department_metrics',
     )
     list_filter = ('overall_letter_grade',)
     search_fields = ('name',)
@@ -32,13 +30,6 @@ class ProfessorAdmin(admin.ModelAdmin):
                 'empirical_bayes_average',
                 'empirical_bayes_rank',
                 'overall_letter_grade'
-            )
-        }),
-        ('Department Specific', {
-            'fields': (
-                'intra_department_eb_average',
-                'intra_department_letter_grade',
-                'intra_department_ranks'
             )
         }),
     )

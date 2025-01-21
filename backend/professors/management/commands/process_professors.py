@@ -35,25 +35,15 @@ class Command(BaseCommand):
                 if i % 100 == 0:
                     self.stdout.write(f'Processed {i}/{total} professors...')
 
-                # Get or create departments
-                department_names = prof_data.get('Departments', '').split(', ')
-                departments = []
-                for dept_name in department_names:
-                    if dept_name:  # Only process non-empty department names
-                        departments.append(dept_name)
-                departments = ', '.join(departments)
-
                 # Create professor
                 professor = Professor.objects.create(
                     name=prof_data.get('Instructor Name'),
-                    departments=departments,
+                    departments=prof_data.get('Departments'),
                     total_ratings=prof_data.get('Total Ratings'),
                     empirical_bayes_average=prof_data.get('Empirical Bayes Average'),
                     empirical_bayes_rank=prof_data.get('Empirical Bayes Rank'),
                     overall_letter_grade=prof_data.get('Overall Letter Grade'),
-                    intra_department_eb_average=prof_data.get('Intra-Department EB Average'),
-                    intra_department_letter_grade=prof_data.get('Intra-Department Letter Grade'),
-                    intra_department_ranks=prof_data.get('Intra-Department Ranks')
+                    intra_department_metrics=prof_data.get('Department Metrics')
                 )
 
             self.stdout.write(self.style.SUCCESS(f'Successfully processed {total} professors'))
