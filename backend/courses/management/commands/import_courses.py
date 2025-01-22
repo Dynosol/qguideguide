@@ -24,7 +24,7 @@ class Command(BaseCommand):
             counts.append(count)
 
         return counts
-
+  
     def clean_float_value(self, string_input):
         if string_input == "0%":
             return float(0)

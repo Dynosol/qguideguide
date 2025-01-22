@@ -4,6 +4,7 @@ from collections import defaultdict
 from django.core.management.base import BaseCommand
 from django.conf import settings
 from professors.models import Department
+import re
 
 class Command(BaseCommand):
     help = 'Process departments from professors.json and calculate department-wide statistics'
@@ -15,21 +16,20 @@ class Command(BaseCommand):
         if not metrics_str:
             return []
         
-        dept_metrics = []
-        # Split by pipe for multiple departments
-        departments = metrics_str.split(' | ')
+        departments = []
+        pattern = re.compile(r'([A-Za-z-]+):\s([\d.]+)\s\(.*Rank:\s(\d+)')
+        parts = metrics_str.split('|')
         
-        for dept in departments:
-            # Extract department name and metrics
-            parts = dept.split(': ')
-            if len(parts) == 2:
-                dept_name = parts[0].strip()
-                metrics = parts[1].strip()
-                # Extract average from metrics (format: "4.780 (B-, Rank: 10)")
-                avg = float(metrics.split(' ')[0])
-                dept_metrics.append((dept_name, avg))
+        for part in parts:
+            part = part.strip()
+            match = pattern.match(part)
+            if match:
+                dept_name = match.group(1)
+                dept_avg = float(match.group(2))
+                dept_rank = int(match.group(3))
+                departments.append((dept_name, dept_avg, dept_rank))
         
-        return dept_metrics
+        return departments
 
     def handle(self, *args, **options):
         try:
@@ -45,7 +45,7 @@ class Command(BaseCommand):
             # Department statistics tracking
             dept_stats = defaultdict(lambda: {
                 'count': 0,
-                'eb_sum': 0,
+                'eb_sum': 0.0,
                 'rank_sum': 0
             })
 
@@ -56,17 +56,16 @@ class Command(BaseCommand):
             # Process each professor
             for prof in professors_data:
                 dept_metrics = self.parse_department_metrics(prof.get('Department Metrics'))
-                
-                for dept_name, dept_avg in dept_metrics:
+
+                for dept_name, dept_avg, dept_rank in dept_metrics:
                     dept_stats[dept_name]['count'] += 1
                     dept_stats[dept_name]['eb_sum'] += dept_avg
-                    # Note: Rank information is now embedded in the metrics string
-                    # We'll calculate average rank based on overall rank for simplicity
-                    dept_stats[dept_name]['rank_sum'] += prof.get('Empirical Bayes Rank', 0)
+                    dept_stats[dept_name]['rank_sum'] += dept_rank
 
             total_depts = len(dept_stats)
             self.stdout.write(f'Processing {total_depts} departments...')
 
+            # Update or create Department records
             for dept_name, stats in dept_stats.items():
                 count = stats['count']
                 if count > 0:

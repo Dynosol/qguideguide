@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name='Department',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, unique=True)),
+                ('name', models.CharField(max_length=1000, unique=True)),
                 ('mean_empirical_bayes_average', models.FloatField(default=0.0)),
                 ('mean_empirical_bayes_rank', models.FloatField(default=0.0)),
             ],

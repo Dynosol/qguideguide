@@ -64,7 +64,7 @@
     if (isLoading) {
       return (
         <div className="w-full h-full flex flex-col">
-          <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+          <h2 className="text-2xl font-semibold mb-4">
             Professor Scores (Overall)
           </h2>
           <div className="rounded-md border flex-1 overflow-y-auto">
@@ -98,7 +98,7 @@
 
     return (
       <div className="w-full h-full flex flex-col">
-        <h2 className="text-2xl font-semibold mb-4 text-gray-800">
+        <h2 className="text-2xl font-semibold mb-4">
           Professor Scores (Overall)
         </h2>
 

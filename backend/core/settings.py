@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 import os
 from decouple import config
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,8 +28,9 @@ RECAPTCHA_PUBLIC_KEY = config('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY')
 
 DEBUG = config('DEBUG', default=False, cast=bool)
+# DEBUG=False;
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["qguideguide.com", "www.qguideguide.com"]
 
 
 # Application definition
@@ -79,6 +81,7 @@ REST_FRAMEWORK = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add whitenoise for static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -94,8 +97,35 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # React dev server
+    "https://qguideguide.com",
+    "https://www.qguideguide.com"
 ]
+
+if DEBUG:
+    ALLOWED_HOSTS.extend(["localhost", "127.0.0.1"])
+    CORS_ALLOWED_ORIGINS.extend([
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ])
+
+# Disable browsable API in production
+if not DEBUG:
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework_datatables.renderers.DatatablesRenderer',
+    ]
+
+# Security settings for production
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    X_FRAME_OPTIONS = 'DENY'
 
 ROOT_URLCONF = 'core.urls'
 
@@ -122,12 +152,12 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -164,9 +194,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "../", "frontend", "dist")
 ]
+
+# Enable WhiteNoise compression and caching support
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

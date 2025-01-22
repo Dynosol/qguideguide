@@ -40,29 +40,14 @@ const parseDepartmentMetrics = (metrics: string): { dept: string, avg: number, g
   if (!metrics) return null;
   
   try {
-    // Handle both old and new formats
-    // Old format: "COMPLIT: 4 (B-, Rank: 15)"
-    // New format: "COMPLIT: 4"
-    const [dept, rest] = metrics.split(': ');
-    
-    if (rest.includes('(')) {
-      // New format with grade and rank
-      const match = rest.match(/(\d+\.\d+)\s*\(([A-Z][+-]?),\s*Rank:\s*(\d+)\)/);
-      if (match) {
-        return {
-          dept: dept.trim(),
-          avg: parseFloat(match[1]),
-          grade: match[2],
-          rank: match[3]
-        };
-      }
-    } else {
-      // Old format with just the average
+    // Match format: "DEPT: 4.553 (C, Rank: 8)"
+    const match = metrics.match(/^([^:]+):\s*(\d+\.\d+)\s*\(([A-Z][+-]?),\s*Rank:\s*(\d+)\)$/);
+    if (match) {
       return {
-        dept: dept.trim(),
-        avg: parseFloat(rest),
-        grade: '',
-        rank: ''
+        dept: match[1].trim(),
+        avg: parseFloat(match[2]),
+        grade: match[3],
+        rank: match[4]
       };
     }
   } catch (error) {
@@ -74,15 +59,45 @@ const parseDepartmentMetrics = (metrics: string): { dept: string, avg: number, g
 export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professor>[] => [
   {
     accessorKey: 'name',
-    header: 'Name',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Name
+          <ArrowUpDown className="ml-2" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: 'departments',
-    header: 'Departments',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Departments
+          <ArrowUpDown className="ml-2" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: 'total_ratings',
-    header: 'Total Ratings',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Total Ratings
+          <ArrowUpDown className="ml-2" />
+        </Button>
+      )
+    },
     minSize: 50,
     maxSize: 100,
   },
@@ -111,11 +126,22 @@ export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professo
     ),
   },
   {
-    accessorKey: 'department_metrics',
-    header: 'Department Metrics',
+    accessorKey: 'intra_department_metrics',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Department Metrics
+          <ArrowUpDown className="ml-2" />
+        </Button>
+      )
+    },
     size: 160,
     cell: ({ row }) => {
-      const metrics = row.getValue('department_metrics') as string | undefined;
+      const metrics = row.getValue('intra_department_metrics') as string | undefined;
+
       if (!metrics) return null;
 
       // Handle multiple departments (split by |)
@@ -132,7 +158,7 @@ export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professo
           {departmentMetrics.map((metric, index) => (
             <div key={index}>
               <strong>
-                <span style={{ color: colorPalettes[mode].harvard }}>
+                <span>
                   {metric}
                 </span>
               </strong>

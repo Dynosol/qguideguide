@@ -37,7 +37,17 @@ const getOrdinalSuffix = (rank: number | string): string => {
 export const getDepartmentsColumns = (mode: 'light' | 'dark'): ColumnDef<Department>[] => [
   {
     accessorKey: 'name',
-    header: 'Department',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Department
+          <ArrowUpDown className="ml-2" />
+        </Button>
+      )
+    },
   },
   {
     accessorKey: 'empirical_bayes_average',

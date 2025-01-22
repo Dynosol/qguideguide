@@ -15,15 +15,15 @@ class Migration(migrations.Migration):
             name='Professor',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200)),
-                ('departments', models.CharField(max_length=200)),
+                ('name', models.CharField(max_length=1000)),
+                ('departments', models.CharField(max_length=1000)),
                 ('total_ratings', models.FloatField()),
                 ('empirical_bayes_average', models.FloatField()),
                 ('empirical_bayes_rank', models.IntegerField()),
                 ('overall_letter_grade', models.CharField(max_length=2)),
                 ('intra_department_eb_average', models.FloatField()),
                 ('intra_department_letter_grade', models.CharField(max_length=2)),
-                ('intra_department_ranks', models.CharField(max_length=200)),
+                ('intra_department_ranks', models.CharField(max_length=1000)),
             ],
             options={
                 'ordering': ['empirical_bayes_rank'],

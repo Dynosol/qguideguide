@@ -134,11 +134,9 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
       value: searchValue ?? '',
       onChange: (event) => {
         setSearchValue(event.target.value);
-        console.info('Global search text:', event.target.value);
       },
     },
     onGlobalFilterChange: (newValue) => {
-      console.log('onGlobalFilterChange', newValue);
       setGlobalFilter(newValue);
       setSearchValue(newValue);
     },

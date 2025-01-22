@@ -13,13 +13,13 @@ class Course(models.Model):
         ('2023 Fall', '2023 Fall'),
     ]
 
-    title = models.CharField(max_length=255)
-    department = models.CharField(max_length=255)
-    instructor = models.CharField(max_length=255)
+    title = models.CharField(max_length=1000)
+    department = models.CharField(max_length=1000)
+    instructor = models.CharField(max_length=1000)
     term = models.CharField(max_length=100, choices=TERM_CHOICES)
-    subject = models.CharField(max_length=255)
+    subject = models.CharField(max_length=1000)
     blue_course_id = models.CharField(max_length=100)
-    url = models.URLField()
+    url = models.URLField(max_length=1000)
     responses = models.IntegerField(default=0)
     invited_responses = models.IntegerField(default=0)
     response_ratio = models.FloatField(null=True, blank=True)
@@ -96,7 +96,7 @@ class Course(models.Model):
 
 class CourseFeedbackQuestion(models.Model):
     course = models.ForeignKey(Course, related_name='course_feedback_questions', on_delete=models.CASCADE)
-    question = models.CharField(max_length=255)
+    question = models.CharField(max_length=1000)
     count = models.IntegerField(default=0)
     excellent_count = models.IntegerField(default=0)
     very_good_count = models.IntegerField(default=0)
@@ -108,7 +108,7 @@ class CourseFeedbackQuestion(models.Model):
 
 class InstructorFeedbackQuestion(models.Model):
     course = models.ForeignKey(Course, related_name='instructor_feedback_questions', on_delete=models.CASCADE)
-    question = models.CharField(max_length=255)
+    question = models.CharField(max_length=1000)
     count = models.IntegerField(default=0)
     excellent_count = models.IntegerField(default=0)
     very_good_count = models.IntegerField(default=0)
