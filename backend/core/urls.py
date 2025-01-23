@@ -21,6 +21,9 @@ from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
 from django.utils import timezone
+from courses import urls as courses_urls
+from professors import urls as professors_urls
+
 
 @require_GET
 def health_check(request):
@@ -88,6 +91,9 @@ urlpatterns = [
     
     # Health check endpoint
     path('healthz/', health_check, name='health_check'),
+    
     path('', include(courses.urls)),
-    path('', include(professors.urls)),
+
+    path('courses/', include(courses_urls)),
+    path('professors/', include(professors_urls)),
 ]
