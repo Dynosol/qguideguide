@@ -257,24 +257,36 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
-CSP_DEFAULT_SRC = ("'self'",)  # Default rule for all content
+# Content Security Policy
+CSP_DEFAULT_SRC = ("'self'",)
 CSP_SCRIPT_SRC = (
     "'self'",
-    "https://code.jquery.com",
+    "'unsafe-inline'",
+    "'unsafe-eval'",
     "https://cdnjs.cloudflare.com",
-    "https://cdn.datatables.net",
 )
 CSP_STYLE_SRC = (
     "'self'",
+    "'unsafe-inline'",
     "https://cdnjs.cloudflare.com",
-    "https://cdn.datatables.net",
 )
 CSP_STYLE_SRC_ELEM = (
     "'self'",
+    "'unsafe-inline'",
     "https://cdnjs.cloudflare.com",
-    "https://cdn.datatables.net",
 )
-CSP_IMG_SRC = ("'self'", "data:")
-CSP_FONT_SRC = ("'self'", "https://cdnjs.cloudflare.com")
+CSP_IMG_SRC = ("'self'", "data:", "https:")
+CSP_FONT_SRC = (
+    "'self'",
+    "data:",
+    "https://cdnjs.cloudflare.com",
+    "https://fonts.gstatic.com",
+    "https://fonts.googleapis.com",
+)
+CSP_CONNECT_SRC = ("'self'",)
+CSP_FRAME_SRC = ("'none'",)
+CSP_OBJECT_SRC = ("'none'",)
+CSP_BASE_URI = ("'self'",)
+CSP_FRAME_ANCESTORS = ("'none'",)
+CSP_FORM_ACTION = ("'self'",)
 CSP_INCLUDE_NONCE_IN = ['script-src']

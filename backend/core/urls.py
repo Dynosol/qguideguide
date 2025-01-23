@@ -20,39 +20,68 @@ from . import views
 from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
+from django.utils import timezone
 
 @require_GET
 def health_check(request):
-    # Basic check (server is running)
     status = {
         "status": "OK",
-        "service": "Django Application",
-        "version": "1.0.0"
+        "service": "QGuideGuide",
+        "timestamp": timezone.now().isoformat(),
+        "checks": {}
     }
     
-    # Optional: Add database check
+    # Database check
     try:
         from django.db import connection
         with connection.cursor() as cursor:
             cursor.execute("SELECT 1")
-        status["database"] = "OK"
+        status["checks"]["database"] = {"status": "OK"}
     except Exception as e:
-        status["database"] = "ERROR"
+        status["checks"]["database"] = {
+            "status": "ERROR",
+            "message": str(e)
+        }
+        status["status"] = "ERROR"
     
-    return JsonResponse(status, status=200)
+    # Cache check
+    try:
+        from django.core.cache import cache
+        cache.set('health_check', 'ok', 1)
+        if cache.get('health_check') == 'ok':
+            status["checks"]["cache"] = {"status": "OK"}
+        else:
+            raise Exception("Cache set/get failed")
+    except Exception as e:
+        status["checks"]["cache"] = {
+            "status": "ERROR",
+            "message": str(e)
+        }
+        status["status"] = "ERROR"
+    
+    # Static files check
+    try:
+        from django.contrib.staticfiles.finders import get_finder
+        finder = get_finder('django.contrib.staticfiles.finders.FileSystemFinder')
+        if finder.find('favicon.ico'):
+            status["checks"]["static_files"] = {"status": "OK"}
+        else:
+            raise Exception("Static files not found")
+    except Exception as e:
+        status["checks"]["static_files"] = {
+            "status": "ERROR",
+            "message": str(e)
+        }
+        status["status"] = "ERROR"
+    
+    return JsonResponse(status, status=200 if status["status"] == "OK" else 503)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('', views.landing_page, name='landing_page'),
-    # path('', include('courses.urls')),
-    # path('courses', include('courses.urls')),
-    # path('about/', include('about.urls')),
-    # path('contact/', include('contact.urls')),
-    # path('', TemplateView.as_view(template_name='index.html'), name='home'),
-    
-    # post react-ification
+    path('', TemplateView.as_view(template_name='index.html'), name='home'),
     path('api/courses/', include('courses.urls')),
     path('api/professors/', include('professors.urls')),
-    
-    path('healthz/', health_check, name="healthcheck")
+    path('healthz/', health_check, name='health_check'),
+    # Catch all route for frontend routing
+    path('<path:path>', TemplateView.as_view(template_name='index.html'), name='catch_all'),
 ]
