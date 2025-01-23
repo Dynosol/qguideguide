@@ -1,15 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import '/src/assets/css/Footbar.css';
+import { NavLink } from 'react-router-dom';
 
 const Footbar: React.FC = () => {
   return (
     <footer className="footbar-container">
         {/* Example brand or logo if desired */}
         <div className="footbar-logo">
-          <Link to="/" className="footbar-logo-link">
+          <NavLink to="/" className="footbar-logo-link">
             QGuideGuide
-          </Link>
+          </NavLink>
         </div>
 
       {/* Optionally, some copyright or tagline */}

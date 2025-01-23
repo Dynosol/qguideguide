@@ -11,7 +11,7 @@ import { db, Course } from './db';
 import { useThemeContext } from '../../utils/themeHelper';
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { colorPalettes } from '../../utils/colors';
-import { getCoursesColumns } from './columns'; // Import the columns
+import { getCoursesColumns } from './Columns'; // Import the columns
 import config from '../../config';
 
 const USER_KEYPRESS_SEARCHDELAY = 100; // in milliseconds

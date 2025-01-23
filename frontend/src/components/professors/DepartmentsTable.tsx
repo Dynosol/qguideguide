@@ -17,7 +17,7 @@ import {
 } from "@tanstack/react-table";
 import { Department } from './db';
 import { useThemeContext } from '../../utils/themeHelper';
-import { getDepartmentsColumns } from './departmentcolumns';
+import { getDepartmentsColumns } from './DepartmentColumns';
 
 
 const SkeletonRow = () => (
