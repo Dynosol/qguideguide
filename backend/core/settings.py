@@ -36,8 +36,6 @@ CORS_ALLOWED_ORIGINS = [
     'https://qguideguide.com',
     'https://www.qguideguide.com',
 ]
-CORS_ALLOW_CREDENTIALS = True
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 
 # Add development settings when DEBUG is True
 if DEBUG:
@@ -162,8 +160,8 @@ MIDDLEWARE = [
     'csp.middleware.CSPMiddleware',
     
     # Cache middleware (placed AFTER security/CORS)
-    # 'django.middleware.cache.UpdateCacheMiddleware',
-    # 'django.middleware.cache.FetchFromCacheMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
 ]
 
 # Disable browsable API in production
