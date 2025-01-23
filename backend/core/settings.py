@@ -122,18 +122,22 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 50,
 }
 
-# Redis Configuration
+# Cache settings
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": config('REDIS_URL', default='redis://127.0.0.1:6379/0'),
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SOCKET_CONNECT_TIMEOUT": 5,
+            "SOCKET_TIMEOUT": 5,
+            "RETRY_ON_TIMEOUT": True,
+            "CONNECTION_POOL_KWARGS": {"max_retries": 3},
         }
     }
 }
 
-# Use Redis for session storage
+# Use Redis for session backend
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
@@ -232,16 +236,18 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.2/howto/static-files/
-
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "../", "frontend", "dist")
-]
+
+# In production, we don't need STATICFILES_DIRS since frontend is built
+if DEBUG:
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, "../", "frontend", "dist")
+    ]
 
 # Enable WhiteNoise compression and caching support
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
