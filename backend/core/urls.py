@@ -77,11 +77,19 @@ def health_check(request):
     return JsonResponse(status, status=200 if status["status"] == "OK" else 503)
 
 urlpatterns = [
+    # Admin interface
     path('admin/', admin.site.urls),
-    path('', TemplateView.as_view(template_name='index.html'), name='home'),
-    path('api/courses/', include('courses.urls')),
-    path('api/professors/', include('professors.urls')),
+    
+    # API endpoints
+    path('api/', include([
+        path('courses/', include('courses.urls')),
+        path('professors/', include('professors.urls')),
+    ])),
+    
+    # Health check endpoint
     path('healthz/', health_check, name='health_check'),
-    # Catch all route for frontend routing
+    
+    # Frontend routes - must be last
+    path('', TemplateView.as_view(template_name='index.html'), name='home'),
     path('<path:path>', TemplateView.as_view(template_name='index.html'), name='catch_all'),
 ]
