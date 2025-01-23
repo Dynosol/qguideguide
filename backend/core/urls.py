@@ -16,14 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from . import views 
 from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
 from django.utils import timezone
-from courses import urls as courses_urls
-from professors import urls as professors_urls
+from rest_framework.routers import DefaultRouter
+from courses.views import CourseViewSet
+from professors.views import ProfessorViewSet, DepartmentViewSet
 
+# Create API router
+api_router = DefaultRouter()
+api_router.register(r'courses', CourseViewSet, basename='course')
+api_router.register(r'professors', ProfessorViewSet, basename='professor')
+api_router.register(r'departments', DepartmentViewSet, basename='department')
 
 @require_GET
 def health_check(request):
@@ -83,16 +88,17 @@ urlpatterns = [
     # Admin interface
     path('admin/', admin.site.urls),
     
-    # API endpoints
-    path('api/', include([
-        path('courses/', include('courses.urls')),
-        path('professors/', include('professors.urls')),
-    ])),
-    
     # Health check endpoint
     path('healthz/', health_check, name='health_check'),
 
-    path('', include(courses_urls)),
+    # API endpoints
+    path('api/', include(api_router.urls)),
     
-    path('professors/', include(professors_urls)),
+    # Main application routes
+    path('', CourseViewSet.as_view({'get': 'list'}), name='home'),  # Root shows courses
+    path('professors/', ProfessorViewSet.as_view({'get': 'list'}), name='professors'),
+    path('departments/', DepartmentViewSet.as_view({'get': 'list'}), name='departments'),
+    
+    # Static pages
+    path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
 ]
