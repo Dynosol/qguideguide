@@ -2,7 +2,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import Navbar from './components/nav/Nav.tsx';
+import Navbar from './components/nav/Nav';
 import Courses from './components/courses/Courses.tsx';
 import About from './components/about/About.tsx';
 import Prof from './components/professors/Prof.tsx';
