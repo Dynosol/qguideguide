@@ -6,6 +6,7 @@ import axios from 'axios';
 import { ProfessorsTable } from './ProfessorsTable';
 import { DepartmentsTable } from './DepartmentsTable';
 import { db, Professor, Department } from './db';
+import config from '../../config';
 import '/src/assets/css/Prof.css';
 
 const Prof: React.FC = () => {
@@ -26,7 +27,7 @@ const Prof: React.FC = () => {
 
         if (localProfessors.length > 0 && localDepartments.length > 0 && lastUpdateTime) {
           // Check if server data has been updated
-          const response = await axios.head('http://localhost:8000/api/professors/professors/');
+          const response = await axios.head(`${config.apiBaseUrl}/api/professors/professors/`);
           const serverLastModified = response.headers['last-modified'];
 
           if (serverLastModified && new Date(serverLastModified) <= new Date(lastUpdateTime.value)) {
@@ -40,25 +41,31 @@ const Prof: React.FC = () => {
 
         // Fetch new data in parallel if cache is invalid or empty
         const [professorsResponse, departmentsResponse] = await Promise.all([
-          axios.get<Professor[]>('http://localhost:8000/api/professors/professors/'),
-          axios.get<Department[]>('http://localhost:8000/api/professors/departments/')
+          axios.get(`${config.apiBaseUrl}/api/professors/professors/`),
+          axios.get(`${config.apiBaseUrl}/api/professors/departments/`)
         ]);
 
         const currentTime = new Date().toISOString();
+        
+        // Extract data arrays from response
+        const professors = Array.isArray(professorsResponse.data) ? professorsResponse.data : 
+                         (professorsResponse.data.professors ? [professorsResponse.data.professors] : []);
+        const departments = Array.isArray(departmentsResponse.data) ? departmentsResponse.data :
+                          (departmentsResponse.data.departments ? [departmentsResponse.data.departments] : []);
 
         // Store all data in parallel
         await db.transaction('rw', db.professors, db.departments, db.metadata, async () => {
           await Promise.all([
             db.professors.clear(),
             db.departments.clear(),
-            db.professors.bulkAdd(professorsResponse.data),
-            db.departments.bulkAdd(departmentsResponse.data),
+            professors.length > 0 && db.professors.bulkAdd(professors),
+            departments.length > 0 && db.departments.bulkAdd(departments),
             db.metadata.put({ key: 'lastUpdate', value: currentTime })
           ]);
         });
 
-        setProfessorsData(professorsResponse.data);
-        setDepartmentsData(departmentsResponse.data);
+        setProfessorsData(professors);
+        setDepartmentsData(departments);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {

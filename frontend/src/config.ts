@@ -1,7 +1,7 @@
 const config = {
   apiBaseUrl: import.meta.env.PROD 
-    ? 'https://api.qguideguide.com'  // Production API URL
-    : 'http://localhost:8000',        // Development API URL
+    ? 'https://qguideguide.com'  // Production API URL (HTTPS)
+    : 'http://127.0.0.1:8000',   // Development API URL (HTTP)
 };
 
-export default config; 
+export default config;

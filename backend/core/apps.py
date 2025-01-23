@@ -5,6 +5,12 @@ class CoreConfig(AppConfig):
     name = 'core'
 
     def ready(self):
-        """Warm up the cache when the application starts"""
+        """Warm up the cache on the first request."""
+        from django.core.signals import request_started
         from core.cache_utils import warm_cache
-        warm_cache()
+
+        def warm_cache_on_first_request(sender, **kwargs):
+            warm_cache()
+            request_started.disconnect(warm_cache_on_first_request)
+
+        request_started.connect(warm_cache_on_first_request)

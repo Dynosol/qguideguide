@@ -28,10 +28,72 @@ RECAPTCHA_PUBLIC_KEY = config('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = config('RECAPTCHA_PRIVATE_KEY')
 
 DEBUG = config('DEBUG', default=False, cast=bool)
-# DEBUG=False;
 
-ALLOWED_HOSTS = ["qguideguide.com", "www.qguideguide.com"]
+# Base allowed hosts and CORS settings
+ALLOWED_HOSTS = ['qguideguide.com', 'www.qguideguide.com']
+CSRF_TRUSTED_ORIGINS = ['https://qguideguide.com', 'https://www.qguideguide.com']
+CORS_ALLOWED_ORIGINS = [
+    'https://qguideguide.com',
+    'https://www.qguideguide.com',
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 
+# Add development settings when DEBUG is True
+if DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+    CSRF_TRUSTED_ORIGINS = [
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:5174',
+        'http://127.0.0.1:5174'
+    ]
+    CORS_ALLOWED_ORIGINS = [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+        'http://localhost:5174',
+        'http://127.0.0.1:5174',
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ]
+    CORS_ALLOW_CREDENTIALS = True
+    CORS_ALLOW_METHODS = [
+        'DELETE',
+        'GET',
+        'OPTIONS',
+        'PATCH',
+        'POST',
+        'PUT',
+    ]
+    CORS_ALLOW_HEADERS = [
+        'accept',
+        'accept-encoding',
+        'authorization',
+        'content-type',
+        'dnt',
+        'origin',
+        'user-agent',
+        'x-csrftoken',
+        'x-requested-with',
+    ]
+    # Disable SSL redirect in development
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
+else:
+    # Production security settings
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
@@ -42,15 +104,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
+    'rest_framework',
     'courses',
     'rest_framework_datatables',
-    'rest_framework',
     'core.apps.CoreConfig',
     'professors',
-    'core',
     'csp',
     'django_recaptcha',
-    'corsheaders',
 ]
 
 REST_FRAMEWORK = {
@@ -82,33 +143,28 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
 MIDDLEWARE = [
+    # Security & CORS first
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add whitenoise for static files
+    
+    # WhiteNoise for static files
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    
+    # Core Django components
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.common.CommonMiddleware',
+    
+    # Security headers
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'csp.middleware.CSPMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.cache.UpdateCacheMiddleware',  # Cache responses before other middlewares
-    'django.middleware.common.CommonMiddleware',  # Handles standard HTTP-related tasks
-    'django.middleware.cache.FetchFromCacheMiddleware',  # Fetch from cache
+    
+    # Cache middleware (placed AFTER security/CORS)
+    # 'django.middleware.cache.UpdateCacheMiddleware',
+    # 'django.middleware.cache.FetchFromCacheMiddleware',
 ]
-
-CORS_ALLOWED_ORIGINS = [
-    "https://qguideguide.com",
-    "https://www.qguideguide.com"
-]
-
-if DEBUG:
-    ALLOWED_HOSTS.extend(["localhost", "127.0.0.1"])
-    CORS_ALLOWED_ORIGINS.extend([
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ])
 
 # Disable browsable API in production
 if not DEBUG:
@@ -116,18 +172,6 @@ if not DEBUG:
         'rest_framework.renderers.JSONRenderer',
         'rest_framework_datatables.renderers.DatatablesRenderer',
     ]
-
-# Security settings for production
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_BROWSER_XSS_FILTER = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_HSTS_SECONDS = 31536000  # 1 year
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    X_FRAME_OPTIONS = 'DENY'
 
 ROOT_URLCONF = 'core.urls'
 

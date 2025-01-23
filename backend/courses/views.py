@@ -1,12 +1,11 @@
-from django.shortcuts import render
-from rest_framework import viewsets, pagination
-from .models import Course
-from rest_framework.pagination import LimitOffsetPagination
-from .serializers import CourseSerializer
-from django.utils.http import http_date
-from django.db.models import Max
-from datetime import datetime
+from django.db.models import Q, Max
+from rest_framework import viewsets
 from rest_framework.response import Response
+from .models import Course
+from .serializers import CourseSerializer
+from rest_framework.pagination import LimitOffsetPagination
+from django.utils.http import http_date
+from datetime import datetime
 from core.cache_utils import get_cached_data
 
 REQUEST_LIMIT = None
@@ -16,7 +15,8 @@ REQUEST_LIMIT = None
 #     return render(request, 'courses.html', {'courses': courses})
 
 class CoursePagination(LimitOffsetPagination):
-    default_limit = REQUEST_LIMIT  # Number of records per page
+    default_limit = 10
+    max_limit = 50
 
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all().order_by('title')
@@ -36,7 +36,8 @@ class CourseViewSet(viewsets.ModelViewSet):
 
     def head(self, request, *args, **kwargs):
         latest_update = Course.objects.aggregate(Max('modified_at'))['modified_at__max']
-        response = Response(None, status=200)
         if latest_update:
-            response['Last-Modified'] = http_date(latest_update.timestamp())
-        return response
+            response = Response()
+            response['Last-Modified'] = http_date(datetime.timestamp(latest_update))
+            return response
+        return Response()

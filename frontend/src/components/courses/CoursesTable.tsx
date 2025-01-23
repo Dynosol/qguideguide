@@ -12,6 +12,7 @@ import { useThemeContext } from '../../utils/themeHelper';
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { colorPalettes } from '../../utils/colors';
 import { getCoursesColumns } from './columns'; // Import the columns
+import config from '../../config';
 
 const USER_KEYPRESS_SEARCHDELAY = 100; // in milliseconds
 interface CoursesTableProps {
@@ -96,12 +97,18 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
   const fetchAndStoreCourses = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get<Course[]>('http://localhost:8000/api/courses/');
-      const courses: Course[] = response.data;
+      const response = await axios.get(`${config.apiBaseUrl}/api/courses/`);
+      
+      // Extract courses array from response
+      const courses = Array.isArray(response.data) ? response.data :
+                     (response.data.results ? response.data.results : []);
 
-      await db.courses.clear();
-      await db.courses.bulkAdd(courses);
-      // console.log('Courses successfully stored in IndexedDB');
+      if (courses.length > 0) {
+        await db.transaction('rw', db.courses, async () => {
+          await db.courses.clear();
+          await db.courses.bulkAdd(courses);
+        });
+      }
 
       setData(courses);
     } catch (error) {
