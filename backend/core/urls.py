@@ -18,6 +18,28 @@ from django.contrib import admin
 from django.urls import path, include
 from . import views 
 from django.views.generic import TemplateView
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.http import require_GET
+
+@require_GET
+def health_check(request):
+    # Basic check (server is running)
+    status = {
+        "status": "OK",
+        "service": "Django Application",
+        "version": "1.0.0"
+    }
+    
+    # Optional: Add database check
+    try:
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        status["database"] = "OK"
+    except Exception as e:
+        status["database"] = "ERROR"
+    
+    return JsonResponse(status, status=200)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,5 +52,7 @@ urlpatterns = [
     
     # post react-ification
     path('api/courses/', include('courses.urls')),
-    path('api/professors/', include('professors.urls'))
+    path('api/professors/', include('professors.urls')),
+    
+    path('healthz/', health_check, name="healthcheck")
 ]

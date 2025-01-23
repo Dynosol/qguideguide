@@ -107,6 +107,8 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'professors',
     'csp',
+    'health_check',
+    'health_check.db',
 ]
 
 REST_FRAMEWORK = {
