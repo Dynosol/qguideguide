@@ -1,7 +1,7 @@
 // App.tsx (simplified example)
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/nav/Nav';
+import Navbar from './components/nav/Nav.tsx';
 import { ThemeContextProvider } from './utils/themeHelper';
 import { ProfessorsProvider } from './utils/professorsContext';
 import Courses from './components/courses/Courses.tsx';

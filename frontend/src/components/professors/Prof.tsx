@@ -27,7 +27,7 @@ const Prof: React.FC = () => {
 
         if (localProfessors.length > 0 && localDepartments.length > 0 && lastUpdateTime) {
           // Check if server data has been updated
-          const response = await axios.head(`${config.apiBaseUrl}/api/professors/professors/`);
+          const response = await axios.head(`${config.apiBaseUrl}/api/professors/`);
           const serverLastModified = response.headers['last-modified'];
 
           if (serverLastModified && new Date(serverLastModified) <= new Date(lastUpdateTime.value)) {
@@ -41,8 +41,8 @@ const Prof: React.FC = () => {
 
         // Fetch new data in parallel if cache is invalid or empty
         const [professorsResponse, departmentsResponse] = await Promise.all([
-          axios.get(`${config.apiBaseUrl}/api/professors/professors/`),
-          axios.get(`${config.apiBaseUrl}/api/professors/departments/`)
+          axios.get(`${config.apiBaseUrl}/api/professors/`),
+          axios.get(`${config.apiBaseUrl}/api/departments/`)
         ]);
 
         const currentTime = new Date().toISOString();
