@@ -88,4 +88,6 @@ urlpatterns = [
     
     # Health check endpoint
     path('healthz/', health_check, name='health_check'),
+    path('', include(courses.urls)),
+    path('', include(professors.urls)),
 ]
