@@ -16,10 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
-from django.utils import timezone
 from rest_framework.routers import DefaultRouter
 from courses.views import CourseViewSet
 from professors.views import ProfessorViewSet, DepartmentViewSet
@@ -93,12 +91,4 @@ urlpatterns = [
 
     # API endpoints
     path('api/', include(api_router.urls)),
-    
-    # Main application routes
-    path('', CourseViewSet.as_view({'get': 'list'}), name='home'),  # Root shows courses
-    path('professors/', ProfessorViewSet.as_view({'get': 'list'}), name='professors'),
-    path('departments/', DepartmentViewSet.as_view({'get': 'list'}), name='departments'),
-    
-    # Static pages
-    path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
 ]
