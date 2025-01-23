@@ -24,8 +24,14 @@ from rest_framework.routers import DefaultRouter
 from courses.views import CourseViewSet
 from professors.views import ProfessorViewSet, DepartmentViewSet
 
+# Create custom router without API root
+class CustomRouter(DefaultRouter):
+    def get_api_root_view(self, api_urls=None):
+        # Disable API root view
+        return None
+
 # Create API router
-api_router = DefaultRouter()
+api_router = CustomRouter()
 api_router.register(r'courses', CourseViewSet, basename='course')
 api_router.register(r'professors', ProfessorViewSet, basename='professor')
 api_router.register(r'departments', DepartmentViewSet, basename='department')
@@ -91,13 +97,13 @@ urlpatterns = [
     # Health check endpoint
     path('healthz/', health_check, name='health_check'),
 
-    # API endpoints
-    path('api/', include(api_router.urls)),
-    
-    # Main application routes
-    path('', CourseViewSet.as_view({'get': 'list'}), name='home'),  # Root shows courses
+    # Main application routes - these are public
+    path('', CourseViewSet.as_view({'get': 'list'}), name='home'),
     path('professors/', ProfessorViewSet.as_view({'get': 'list'}), name='professors'),
     path('departments/', DepartmentViewSet.as_view({'get': 'list'}), name='departments'),
+    
+    # API endpoints - hidden from browsing
+    path('api/v1/', include(api_router.urls)),
     
     # Static pages
     path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
