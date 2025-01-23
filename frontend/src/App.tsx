@@ -2,10 +2,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import Navbar from './components/Nav/Nav';
-import Courses from './components/courses/Courses';
-import About from './components/about/About';
-import Prof from './components/professors/Prof';
+import Navbar from './components/nav/Nav.tsx';
+import Courses from './components/courses/Courses.tsx';
+import About from './components/about/About.tsx';
+import Prof from './components/professors/Prof.tsx';
 import { ThemeContextProvider } from './utils/themeHelper';
 import { ProfessorsProvider } from './utils/professorsContext';
 
