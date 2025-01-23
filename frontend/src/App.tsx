@@ -1,13 +1,13 @@
 // App.tsx (simplified example)
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/nav/Nav.tsx';
+
+import Navbar from './components/Nav/Nav';
+import Courses from './components/courses/Courses';
+import About from './components/about/About';
+import Prof from './components/professors/Prof';
 import { ThemeContextProvider } from './utils/themeHelper';
 import { ProfessorsProvider } from './utils/professorsContext';
-import Courses from './components/courses/Courses.tsx';
-import About from './components/about/About.tsx';
-import Prof from './components/professors/Prof.tsx'
-  
 
 const App: React.FC = () => {
   return (
