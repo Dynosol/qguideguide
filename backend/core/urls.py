@@ -16,14 +16,21 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from . import views 
 from django.views.generic import TemplateView
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
 from django.utils import timezone
-from courses import urls as courses_urls
-from professors import urls as professors_urls
+from rest_framework.routers import DefaultRouter
+from courses.views import CourseViewSet
+from professors.views import ProfessorViewSet, DepartmentViewSet
 
+# Create the router
+router = DefaultRouter()
+
+# Register viewsets
+router.register(r'', CourseViewSet, basename='course')  # Root URL shows courses
+router.register(r'professors', ProfessorViewSet, basename='professor')
+router.register(r'departments', DepartmentViewSet, basename='department')
 
 @require_GET
 def health_check(request):
@@ -83,17 +90,21 @@ urlpatterns = [
     # Admin interface
     path('admin/', admin.site.urls),
     
-    # API endpoints
-    path('api/', include([
-        path('courses/', include('courses.urls')),
-        path('professors/', include('professors.urls')),
-    ])),
-    
     # Health check endpoint
     path('healthz/', health_check, name='health_check'),
-    
-    path('', include(courses.urls)),
 
-    path('courses/', include(courses_urls)),
-    path('professors/', include(professors_urls)),
+    # API endpoints under /api prefix
+    path('api/', include([
+        path('', include(router.urls)),
+        path('professors/', include(router.urls)),
+        path('departments/', include(router.urls)),
+    ])),
+    
+    # Main application routes
+    path('', include(router.urls)),  # Root shows courses
+    path('professors/', include(router.urls)),
+    path('departments/', include(router.urls)),
+    
+    # Static pages
+    path('about/', TemplateView.as_view(template_name='about.html'), name='about'),
 ]
