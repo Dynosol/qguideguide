@@ -88,8 +88,4 @@ urlpatterns = [
     
     # Health check endpoint
     path('healthz/', health_check, name='health_check'),
-    
-    # Frontend routes - must be last
-    path('', TemplateView.as_view(template_name='index.html'), name='home'),
-    path('<path:path>', TemplateView.as_view(template_name='index.html'), name='catch_all'),
 ]
