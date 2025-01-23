@@ -107,7 +107,6 @@ INSTALLED_APPS = [
     'core.apps.CoreConfig',
     'professors',
     'csp',
-    'django_recaptcha',
 ]
 
 REST_FRAMEWORK = {
@@ -256,8 +255,6 @@ CSP_SCRIPT_SRC = (
     "https://code.jquery.com",
     "https://cdnjs.cloudflare.com",
     "https://cdn.datatables.net",
-    "https://www.google.com/recaptcha/",
-    "https://www.gstatic.com/recaptcha/",
 )
 CSP_STYLE_SRC = (
     "'self'",
