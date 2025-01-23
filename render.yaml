@@ -21,16 +21,15 @@ services:
   # Frontend service
   - type: static
     name: qguideguide-frontend
-    env:
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    env: node
+    envVars:
       - key: NODE_VERSION
-        value: 18.x
+        value: 18
       - key: VITE_API_URL
         value: https://qguideguide.onrender.com
-    buildCommand: |
-      cd frontend
-      npm install
-      npm run build
-    publishDir: frontend/dist
     routes:
       - type: rewrite
         source: /*
