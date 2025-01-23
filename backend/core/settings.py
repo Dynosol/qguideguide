@@ -28,11 +28,16 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Base allowed hosts and CORS settings
-ALLOWED_HOSTS = ['qguideguide.com', 'www.qguideguide.com']
-CSRF_TRUSTED_ORIGINS = ['https://qguideguide.com', 'https://www.qguideguide.com']
+ALLOWED_HOSTS = ['qguideguide.com', 'www.qguideguide.com', 'qguideguide.onrender.com']
+CSRF_TRUSTED_ORIGINS = [
+    'https://qguideguide.com',
+    'https://www.qguideguide.com',
+    'https://qguideguide.onrender.com',
+]
 CORS_ALLOWED_ORIGINS = [
     'https://qguideguide.com',
     'https://www.qguideguide.com',
+    'https://qguideguide.onrender.com',
 ]
 
 # Add development settings when DEBUG is True
