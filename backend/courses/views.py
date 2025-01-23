@@ -7,6 +7,7 @@ from django.utils.http import http_date
 from django.db.models import Max
 from datetime import datetime
 from rest_framework.response import Response
+from core.cache_utils import get_cached_data
 
 REQUEST_LIMIT = None
 
@@ -23,11 +24,15 @@ class CourseViewSet(viewsets.ModelViewSet):
     pagination_class = CoursePagination
 
     def list(self, request, *args, **kwargs):
-        response = super().list(request, *args, **kwargs)
-        latest_update = Course.objects.aggregate(Max('modified_at'))['modified_at__max']
-        if latest_update:
-            response['Last-Modified'] = http_date(latest_update.timestamp())
-        return response
+        # Get data from cache
+        data = get_cached_data('courses_data')
+        
+        # Handle pagination
+        page = self.paginate_queryset(data)
+        if page is not None:
+            return self.get_paginated_response(page)
+        
+        return Response(data)
 
     def head(self, request, *args, **kwargs):
         latest_update = Course.objects.aggregate(Max('modified_at'))['modified_at__max']

@@ -36,26 +36,6 @@ const getOrdinalSuffix = (rank: number | string): string => {
   }
 };
 
-const parseDepartmentMetrics = (metrics: string): { dept: string, avg: number, grade: string, rank: string } | null => {
-  if (!metrics) return null;
-  
-  try {
-    // Match format: "DEPT: 4.553 (C, Rank: 8)"
-    const match = metrics.match(/^([^:]+):\s*(\d+\.\d+)\s*\(([A-Z][+-]?),\s*Rank:\s*(\d+)\)$/);
-    if (match) {
-      return {
-        dept: match[1].trim(),
-        avg: parseFloat(match[2]),
-        grade: match[3],
-        rank: match[4]
-      };
-    }
-  } catch (error) {
-    console.error('Error parsing department metrics:', error);
-  }
-  return null;
-};
-
 export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professor>[] => [
   {
     accessorKey: 'name',
@@ -142,28 +122,13 @@ export const getProfessorsColumns = (mode: 'light' | 'dark'): ColumnDef<Professo
     cell: ({ row }) => {
       const metrics = row.getValue('intra_department_metrics') as string | undefined;
 
-      if (!metrics) return null;
-
-      // Handle multiple departments (split by |)
-      const departmentMetrics = metrics.split(' | ').map((metric: string) => {
-        const parsed = parseDepartmentMetrics(metric);
-        if (parsed) {
-          return `${parsed.dept}: ${parsed.avg.toFixed(3)} (${parsed.grade}, ${getOrdinalSuffix(parsed.rank)})`;
-        }
-        return null;
-      }).filter(Boolean);
-
       return (
         <div>
-          {departmentMetrics.map((metric, index) => (
-            <div key={index}>
-              <strong>
-                <span>
-                  {metric}
-                </span>
-              </strong>
+            <div>
+              <span>
+                {metrics}
+              </span>
             </div>
-          ))}
         </div>
       );
     },

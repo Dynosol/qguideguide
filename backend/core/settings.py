@@ -45,10 +45,9 @@ INSTALLED_APPS = [
     'courses',
     'rest_framework_datatables',
     'rest_framework',
-    # 'about', depricated!
-    'core',
-    # 'contact', depricated!
+    'core.apps.CoreConfig',
     'professors',
+    'core',
     'csp',
     'django_recaptcha',
     'corsheaders',
@@ -67,17 +66,20 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 50,
 }
 
-# WILL IMPLEMENT REDIS AT A LATER POINT?
+# Redis Configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
 
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://127.0.0.1:6379/1",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-#         },
-#     }
-# }
+# Use Redis for session storage
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
