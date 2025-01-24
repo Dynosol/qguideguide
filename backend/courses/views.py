@@ -3,11 +3,11 @@ from rest_framework import viewsets, filters
 from rest_framework.response import Response
 from rest_framework_datatables import filters as dt_filters
 from .models import Course
-from .serializers import CourseSerializer
+from .serializers import CourseSerializer, CourseListSerializer
 from rest_framework.pagination import LimitOffsetPagination
 from django.utils.http import http_date
 from datetime import datetime
-from core.cache_utils import get_cached_data
+from core.cache_utils import get_cached_data, cache
 from core.viewsets import ThrottledViewSet
 import logging
 import time
@@ -28,6 +28,12 @@ class CourseViewSet(ThrottledViewSet):
     serializer_class = CourseSerializer
     pagination_class = CoursePagination
 
+    def get_serializer_class(self):
+        """Return different serializers for list and detail"""
+        if self.action == 'list':
+            return CourseListSerializer
+        return CourseSerializer
+
     def list(self, request, *args, **kwargs):
         start_time = time.time()
 
@@ -35,12 +41,13 @@ class CourseViewSet(ThrottledViewSet):
         db_start_time = time.time()
         try:
             # Get data from cache
-            data = get_cached_data('courses_data')
+            data = get_cached_data('courses_list_data')  
             if data is None:
                 # If cache completely fails, fall back to database
                 queryset = self.get_queryset()
                 serializer = self.get_serializer(queryset, many=True)
                 data = serializer.data
+                cache.set('courses_list_data', data, 60 * 60 * 24)  
             
             # Handle pagination
             page = self.paginate_queryset(data)
@@ -50,7 +57,7 @@ class CourseViewSet(ThrottledViewSet):
                 response = Response(data)
             
             # Calculate total duration
-            total_duration = (time.time() - start_time) * 1000  # Convert to milliseconds
+            total_duration = (time.time() - start_time) * 1000  
 
             # Set Server-Timing header
             response['Server-Timing'] = f"db;dur={(time.time() - db_start_time) * 1000:.2f}, total;dur={total_duration:.2f}"
