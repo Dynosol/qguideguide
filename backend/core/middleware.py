@@ -79,9 +79,13 @@ class APIKeyMiddleware:
                 response['Access-Control-Allow-Origin'] = origin
                 response['Access-Control-Allow-Credentials'] = 'true'
                 response['Access-Control-Expose-Headers'] = 'last-modified'
-                # Add cache control headers
-                response['Cache-Control'] = 'no-cache'
-                if request.method == 'HEAD':
+                
+                # Add cache control headers - allow caching but require revalidation
+                response['Cache-Control'] = 'no-cache, must-revalidate'
+                response['Pragma'] = 'no-cache'
+                
+                # Handle HEAD requests same as GET
+                if request.method in ['HEAD', 'GET']:
                     response['Access-Control-Allow-Headers'] = 'x-api-key, content-type'
                     response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, HEAD, OPTIONS'
         
@@ -159,9 +163,13 @@ class RateLimitMiddleware:
                 response['Access-Control-Allow-Origin'] = origin
                 response['Access-Control-Allow-Credentials'] = 'true'
                 response['Access-Control-Expose-Headers'] = 'last-modified'
-                # Add cache control headers
-                response['Cache-Control'] = 'no-cache'
-                if request.method == 'HEAD':
+                
+                # Add cache control headers - allow caching but require revalidation
+                response['Cache-Control'] = 'no-cache, must-revalidate'
+                response['Pragma'] = 'no-cache'
+                
+                # Handle HEAD requests same as GET
+                if request.method in ['HEAD', 'GET']:
                     response['Access-Control-Allow-Headers'] = 'x-api-key, content-type'
                     response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, HEAD, OPTIONS'
         

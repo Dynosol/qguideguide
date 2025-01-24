@@ -13,10 +13,9 @@ const api = axios.create({
 
 // Add request interceptor for logging and header consistency
 api.interceptors.request.use(request => {
-  // Ensure API key is set for all requests including HEAD
-  if (!request.headers['X-API-Key']) {
-    request.headers['X-API-Key'] = config.apiKey;
-  }
+  // Set default headers for all requests including HEAD
+  request.headers['X-API-Key'] = config.apiKey;
+  request.headers['Content-Type'] = 'application/json';
 
   // Log request for debugging
   console.log('API Request:', {
