@@ -17,20 +17,3 @@ services:
         sync: false
       - key: DEBUG
         value: false
-
-  # Frontend service
-  - type: static
-    name: qguideguide-frontend
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    publishDir: dist
-    env: node
-    envVars:
-      - key: NODE_VERSION
-        value: 18
-      - key: VITE_API_URL
-        value: https://qguideguide.onrender.com
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
