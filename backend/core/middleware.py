@@ -8,7 +8,13 @@ class APIKeyMiddleware:
     def __call__(self, request):
         # Skip API key check for OPTIONS requests (CORS preflight)
         if request.method == 'OPTIONS':
-            return self.get_response(request)
+            response = self.get_response(request)
+            # Ensure CORS headers are set for preflight
+            response['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+            response['Access-Control-Allow-Credentials'] = 'true'
+            response['Access-Control-Allow-Headers'] = 'x-api-key, content-type'
+            response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+            return response
 
         # Skip API key check for development
         if settings.DEBUG:
@@ -22,10 +28,10 @@ class APIKeyMiddleware:
         
         response = self.get_response(request)
         
-        # Ensure CORS headers are preserved
-        if 'Access-Control-Allow-Origin' not in response:
-            response['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
-        if 'Access-Control-Allow-Credentials' not in response:
+        # Always ensure CORS headers are present
+        origin = request.headers.get('Origin')
+        if origin:
+            response['Access-Control-Allow-Origin'] = origin
             response['Access-Control-Allow-Credentials'] = 'true'
         
         return response
