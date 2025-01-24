@@ -62,28 +62,36 @@ dump.rdb
 .coverage
 htmlcov/
 .pytest_cache/
+# Static files
+backend/staticfiles/
 backend/static/
 backend/media/
+backend/courses/static/json/
+backend/professors/static/json/
+**/static/json/course_data.json
+
+# Environment files
 frontend/.env
 backend/.env
+.env
+./backend/.env
+
+# Course data files
 new_course_data.json
 2020-2024_Course_Data.json
 course_data.json
 old_course_data.json
-scraping_materials/old_course_data.json
-./scraping_material/old_course_data.json
+**/course_data.json
+
+# Virtual environments
 venv/
-./backend/venv/
-./core/venv
-venv/
-./backend/course_data.json
-./backend/courses/static/course_data.json
+*/venv/
+*/*/venv/
+
+# Database
 db.sqlite3
-./backend/db.sqlite3
+*/db.sqlite3
 ./core/settings.py
-.env
-./backend/.env
-./backend/courses/static/json/course_data.json
 
 # Scraping materials
 scraping_materials/
@@ -91,11 +99,6 @@ scraping_material/
 **/old_data/
 **/all_qguide_data.json
 **/instructor_rankings.json
-
-# Backend static JSON files
-backend/staticfiles/json/
-backend/courses/static/json/
-backend/professors/static/json/
 
 # Database dumps and backups
 db_dump.json
