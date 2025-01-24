@@ -38,8 +38,15 @@ class CourseViewSet(ThrottledViewSet):
         start_time = time.time()
         cache_time = 0
         db_time = 0
+        query_count = 0
 
         try:
+            from django.db import connection, reset_queries
+            import json
+            
+            # Enable query logging
+            reset_queries()
+            
             # Try to get data from cache
             cache_start = time.time()
             data = get_cached_data('courses_list_data')
@@ -52,7 +59,14 @@ class CourseViewSet(ThrottledViewSet):
                 serializer = self.get_serializer(queryset, many=True)
                 data = serializer.data
                 db_time = (time.time() - db_start) * 1000
-                logger.warning("Cache miss for courses_list_data, used database")
+                
+                # Log query information
+                query_count = len(connection.queries)
+                queries = connection.queries
+                logger.warning(f"Cache miss for courses_list_data. Executed {query_count} queries:")
+                for query in queries:
+                    logger.warning(f"Query: {query['sql'][:500]}...")
+                    logger.warning(f"Time: {query['time']}")
             
             # Handle pagination
             page = self.paginate_queryset(data)
@@ -68,7 +82,8 @@ class CourseViewSet(ThrottledViewSet):
             timings = [
                 f"cache;dur={cache_time:.2f}",
                 f"db;dur={db_time:.2f}",
-                f"total;dur={total_duration:.2f}"
+                f"total;dur={total_duration:.2f}",
+                f"queries;desc={query_count}"
             ]
             response['Server-Timing'] = ', '.join(timings)
             
@@ -91,3 +106,47 @@ class CourseViewSet(ThrottledViewSet):
         except Exception as e:
             logger.error(f"Error in CourseViewSet.head: {str(e)}")
             return Response(status=500)
+
+    @action(detail=False, methods=['get'])
+    def debug(self, request):
+        """Diagnostic endpoint to help debug performance issues"""
+        try:
+            from django.db import connection
+            from django.core.cache import cache
+            import json
+
+            # Test cache
+            cache_start = time.time()
+            cache_test = cache.set('test_key', 'test_value', 10)
+            cache_get = cache.get('test_key')
+            cache_time = (time.time() - cache_start) * 1000
+
+            # Test database
+            db_start = time.time()
+            test_query = Course.objects.all()[:1]
+            list(test_query)  # Execute the query
+            db_time = (time.time() - db_start) * 1000
+
+            # Get cache stats
+            cache_keys = {
+                'courses_list_data': cache.get('courses_list_data') is not None,
+                'courses_data': cache.get('courses_data') is not None,
+                'professors_data': cache.get('professors_data') is not None,
+                'departments_data': cache.get('departments_data') is not None,
+            }
+
+            return Response({
+                'cache': {
+                    'working': cache_test and cache_get == 'test_value',
+                    'time_ms': cache_time,
+                    'keys_present': cache_keys
+                },
+                'database': {
+                    'time_ms': db_time,
+                    'backend': connection.vendor,
+                    'queries_executed': len(connection.queries)
+                }
+            })
+        except Exception as e:
+            logger.error(f"Error in diagnostic endpoint: {str(e)}", exc_info=True)
+            return Response({"error": str(e)}, status=500)
