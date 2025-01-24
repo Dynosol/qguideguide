@@ -40,7 +40,7 @@ class APIKeyMiddleware:
                     'ip': client_ip,
                     'path': request.path,
                     'method': request.method,
-                    'user': request.user.username if request.user.is_authenticated else 'anonymous'
+                    'user': 'anonymous'  # Simplified as we don't need user info for API logging
                 }
             )
             
@@ -51,7 +51,7 @@ class APIKeyMiddleware:
                     extra={
                         'ip': client_ip,
                         'path': request.path,
-                        'user': request.user.username if request.user.is_authenticated else 'anonymous'
+                        'user': 'anonymous'  # Simplified as we don't need user info for security logging
                     }
                 )
                 return JsonResponse({'error': 'Invalid API key'}, status=403)
@@ -97,7 +97,7 @@ class RateLimitMiddleware:
                     extra={
                         'ip': ip,
                         'path': request.path,
-                        'user': request.user.username if request.user.is_authenticated else 'anonymous',
+                        'user': 'anonymous',  # Simplified as we don't need user info for rate limit logging
                         'request_count': len(requests)
                     }
                 )
@@ -114,7 +114,7 @@ class RateLimitMiddleware:
                     extra={
                         'ip': ip,
                         'path': request.path,
-                        'user': request.user.username if request.user.is_authenticated else 'anonymous',
+                        'user': 'anonymous',  # Simplified as we don't need user info for rate limit logging
                         'request_count': len(requests)
                     }
                 )

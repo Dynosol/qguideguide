@@ -14,6 +14,11 @@ const isApiRequest = (request) => {
   return request.url.includes('/api/');
 };
 
+// Helper function to check if URL is cacheable
+const isCacheableUrl = (url) => {
+  return url.startsWith('http:') || url.startsWith('https:');
+};
+
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -28,6 +33,11 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  // Skip non-cacheable URLs (like chrome-extension://)
+  if (!isCacheableUrl(event.request.url)) {
+    return;
+  }
+
   // Don't cache API requests
   if (isApiRequest(event.request)) {
     event.respondWith(fetch(event.request));
@@ -48,16 +58,23 @@ self.addEventListener('fetch', event => {
               return response;
             }
 
-            // Clone the response
-            const responseToCache = response.clone();
+            // Only cache if URL is cacheable
+            if (isCacheableUrl(event.request.url)) {
+              // Clone the response
+              const responseToCache = response.clone();
 
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              })
-              .catch(error => {
-                console.error('Error caching response:', error);
-              });
+              caches.open(CACHE_NAME)
+                .then(cache => {
+                  try {
+                    cache.put(event.request, responseToCache);
+                  } catch (error) {
+                    console.error('Error caching response:', error);
+                  }
+                })
+                .catch(error => {
+                  console.error('Error opening cache:', error);
+                });
+            }
 
             return response;
           })

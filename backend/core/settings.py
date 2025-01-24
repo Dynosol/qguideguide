@@ -111,6 +111,24 @@ else:
         'https://qguideguide.onrender.com'  
     ]
     CORS_ALLOW_CREDENTIALS = True
+    
+    # Production middleware configuration
+    MIDDLEWARE = [
+        'corsheaders.middleware.CorsMiddleware',
+        'django.middleware.common.CommonMiddleware',
+        'django.middleware.security.SecurityMiddleware',
+        'whitenoise.middleware.WhiteNoiseMiddleware',
+        'core.middleware.APIKeyMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+        'django.middleware.clickjacking.XFrameOptionsMiddleware',
+        'csp.middleware.CSPMiddleware',
+        'django.middleware.cache.UpdateCacheMiddleware',
+        'django.middleware.cache.FetchFromCacheMiddleware',
+    ]
+    
     # Security settings for production
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -205,25 +223,6 @@ else:
     # Use Redis for session backend in production
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
     SESSION_CACHE_ALIAS = "default"
-
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
-    'core.middleware.RateLimitMiddleware',  # Add rate limiting
-    'core.middleware.APIKeyMiddleware',  # Add our custom middleware
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    # Security headers
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'csp.middleware.CSPMiddleware',
-    # Cache middleware (placed AFTER security/CORS)
-    'django.middleware.cache.UpdateCacheMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
-]
 
 # Disable browsable API in production
 if not DEBUG:
