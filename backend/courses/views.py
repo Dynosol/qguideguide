@@ -18,8 +18,7 @@ REQUEST_LIMIT = None
 #     return render(request, 'courses.html', {'courses': courses})
 
 class CoursePagination(LimitOffsetPagination):
-    default_limit = 10
-    max_limit = 50
+    default_limit = REQUEST_LIMIT
 
 logger = logging.getLogger(__name__)
 
