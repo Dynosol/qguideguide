@@ -194,7 +194,6 @@ else:
                     "socket_timeout": 5,
                     "socket_connect_timeout": 5,
                 },
-                "PARSER_CLASS": "redis.connection.HiredisParser",
                 "IGNORE_EXCEPTIONS": True,  # Don't crash on Redis errors
                 "REDIS_CLIENT_KWARGS": {
                     "ssl": True,  # Enable SSL for production Redis
