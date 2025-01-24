@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Navbar from './components/nav/Nav';
 import { ThemeContextProvider } from './utils/themeHelper';
-import { ProfessorsProvider } from './utils/professorsContext';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy load components
@@ -16,7 +15,6 @@ const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <ThemeContextProvider>
-        <ProfessorsProvider>
           <Router>
             <Navbar />
             <Suspense fallback={<div>Loading...</div>}>
@@ -27,7 +25,6 @@ const App: React.FC = () => {
               </Routes>
             </Suspense>
           </Router>
-        </ProfessorsProvider>
       </ThemeContextProvider>
     </ErrorBoundary>
   );
