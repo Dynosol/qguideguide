@@ -13,21 +13,15 @@ body.dark-mode .main-table {
   margin-top: 4vh;
   height: 4vh;
   background-color: var(--greyish);
-  position: fixed;
   width: 100%;
-  
   display: flex;
   align-items: center; 
-  
   padding: 0 2vw;
-
   color: var(--text-color-light);
-  justify-content: space-between;
-
+  justify-content: flex-start;
   flex-wrap: nowrap;
   overflow-x: auto;
   white-space: nowrap;
-
 }
 body.dark-mode .guide {
   background-color: var(--dark-greyish);
