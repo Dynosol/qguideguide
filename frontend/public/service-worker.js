@@ -40,7 +40,7 @@ self.addEventListener('fetch', event => {
 
   // Don't cache API requests
   if (isApiRequest(event.request)) {
-    event.respondWith(fetch(event.request));
+    // Don't handle API requests at all, let the browser handle them normally
     return;
   }
 

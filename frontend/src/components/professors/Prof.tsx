@@ -18,60 +18,66 @@ const Prof: React.FC = () => {
   useEffect(() => {
     const fetchAllData = async () => {
       try {
-        // Fetch both datasets in parallel
-        const [localProfessors, localDepartments] = await Promise.all([
-          db.professors.toArray(),
-          db.departments.toArray()
-        ]);
+        setIsLoading(true);
+        
+        // Always fetch fresh data in production to avoid caching issues
+        if (import.meta.env.PROD) {
+          const [professorsResponse, departmentsResponse] = await Promise.all([
+            api.get('/api/professors/'),
+            api.get('/api/departments/')
+          ]);
+          
+          setProfessorsData(professorsResponse.data);
+          setDepartmentsData(departmentsResponse.data);
+          
+          // Update IndexedDB cache
+          await db.professors.clear();
+          await db.departments.clear();
+          await db.professors.bulkAdd(professorsResponse.data);
+          await db.departments.bulkAdd(departmentsResponse.data);
+          await db.metadata.put({ key: 'lastUpdate', value: new Date().toISOString() });
+        } else {
+          // In development, use the existing caching strategy
+          const [localProfessors, localDepartments] = await Promise.all([
+            db.professors.toArray(),
+            db.departments.toArray()
+          ]);
 
-        const lastUpdateTime = await db.metadata.get('lastUpdate');
+          const lastUpdateTime = await db.metadata.get('lastUpdate');
 
-        if (localProfessors.length > 0 && localDepartments.length > 0 && lastUpdateTime) {
-          try {
-            // Check if server data has been updated
-            const response = await api.head('/api/professors/');
-            const serverLastModified = response.headers['last-modified'];
-
-            if (serverLastModified && new Date(serverLastModified) <= new Date(lastUpdateTime.value)) {
-              // Use cached data if server hasn't updated
+          if (localProfessors.length > 0 && localDepartments.length > 0 && lastUpdateTime) {
+            try {
+              const response = await api.get('/api/professors/');
+              setProfessorsData(response.data);
+              setDepartmentsData(localDepartments);
+              
+              // Update cache
+              await db.professors.clear();
+              await db.professors.bulkAdd(response.data);
+              await db.metadata.put({ key: 'lastUpdate', value: new Date().toISOString() });
+            } catch (error) {
+              console.warn('Failed to fetch fresh data, using cache:', error);
               setProfessorsData(localProfessors);
               setDepartmentsData(localDepartments);
-              setIsLoading(false);
-              return;
             }
-          } catch (error) {
-            // If HEAD request fails, fallback to fetching fresh data
-            console.warn('Cache validation failed, fetching fresh data:', error);
+          } else {
+            // No cache, fetch fresh data
+            const [professorsResponse, departmentsResponse] = await Promise.all([
+              api.get('/api/professors/'),
+              api.get('/api/departments/')
+            ]);
+            
+            setProfessorsData(professorsResponse.data);
+            setDepartmentsData(departmentsResponse.data);
+            
+            // Update cache
+            await db.professors.clear();
+            await db.departments.clear();
+            await db.professors.bulkAdd(professorsResponse.data);
+            await db.departments.bulkAdd(departmentsResponse.data);
+            await db.metadata.put({ key: 'lastUpdate', value: new Date().toISOString() });
           }
         }
-
-        // Fetch new data in parallel if cache is invalid or empty
-        const [professorsResponse, departmentsResponse] = await Promise.all([
-          api.get('/api/professors/'),
-          api.get('/api/departments/')
-        ]);
-
-        const currentTime = new Date().toISOString();
-        
-        // Extract data arrays from response
-        const professors = Array.isArray(professorsResponse.data) ? professorsResponse.data : 
-                         (professorsResponse.data.professors ? [professorsResponse.data.professors] : []);
-        const departments = Array.isArray(departmentsResponse.data) ? departmentsResponse.data :
-                          (departmentsResponse.data.departments ? [departmentsResponse.data.departments] : []);
-
-        // Store all data in parallel
-        await db.transaction('rw', db.professors, db.departments, db.metadata, async () => {
-          await Promise.all([
-            db.professors.clear(),
-            db.departments.clear(),
-            professors.length > 0 && db.professors.bulkAdd(professors),
-            departments.length > 0 && db.departments.bulkAdd(departments),
-            db.metadata.put({ key: 'lastUpdate', value: currentTime })
-          ]);
-        });
-
-        setProfessorsData(professors);
-        setDepartmentsData(departments);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
