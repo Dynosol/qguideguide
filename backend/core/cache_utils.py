@@ -14,27 +14,30 @@ CACHE_TIMEOUT = 60 * 60 * 24  # 24 hours
 
 def warm_cache():
     """Warm up the cache with all necessary data"""
+    logger.info("Starting cache warming process...")
     try:
         # Cache professors data
-        professors = Professor.objects.all().order_by('empirical_bayes_rank') 
+        professors = Professor.objects.all().order_by('empirical_bayes_rank')
         professors_data = ProfessorSerializer(professors, many=True).data
         cache.set('professors_data', professors_data, CACHE_TIMEOUT)
+        logger.info(f"Cached {len(professors_data)} professors")
 
         # Cache departments data
         departments = Department.objects.all().order_by('name')
         departments_data = DepartmentSerializer(departments, many=True).data
         cache.set('departments_data', departments_data, CACHE_TIMEOUT)
+        logger.info(f"Cached {len(departments_data)} departments")
 
         # Cache courses data
         courses = Course.objects.all().order_by('title')
         courses_data = CourseSerializer(courses, many=True).data
         cache.set('courses_data', courses_data, CACHE_TIMEOUT)
-        
-        logger.info("Cache successfully warmed up")
-        return True
+        logger.info(f"Cached {len(courses_data)} courses")
+
+        logger.info("Cache warming completed successfully")
     except Exception as e:
-        logger.error(f"Error warming cache: {str(e)}")
-        return False
+        logger.error(f"Error during cache warming: {str(e)}")
+        raise  # Re-raise the exception to ensure Django knows about the startup error
 
 def get_cached_data(key):
     """Get data from cache, if it doesn't exist or fails, fall back to database"""
