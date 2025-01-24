@@ -10,6 +10,7 @@ from datetime import datetime
 from core.cache_utils import get_cached_data
 from core.viewsets import ThrottledViewSet
 import logging
+import time
 
 REQUEST_LIMIT = None
 
@@ -28,6 +29,10 @@ class CourseViewSet(ThrottledViewSet):
     pagination_class = CoursePagination
 
     def list(self, request, *args, **kwargs):
+        start_time = time.time()
+
+        # Start timing database query
+        db_start_time = time.time()
         try:
             # Get data from cache
             data = get_cached_data('courses_data')
@@ -40,9 +45,17 @@ class CourseViewSet(ThrottledViewSet):
             # Handle pagination
             page = self.paginate_queryset(data)
             if page is not None:
-                return self.get_paginated_response(page)
+                response = self.get_paginated_response(page)
+            else:
+                response = Response(data)
             
-            return Response(data)
+            # Calculate total duration
+            total_duration = (time.time() - start_time) * 1000  # Convert to milliseconds
+
+            # Set Server-Timing header
+            response['Server-Timing'] = f"db;dur={(time.time() - db_start_time) * 1000:.2f}, total;dur={total_duration:.2f}"
+
+            return response
         except Exception as e:
             logger.error(f"Error in CourseViewSet.list: {str(e)}")
             return Response(
