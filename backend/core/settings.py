@@ -25,6 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = config('SECRET_KEY')
 
+# API Key for frontend authentication
+API_KEY = config('API_KEY', default='your-dev-api-key-here')
+
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Base allowed hosts and CORS settings
@@ -147,23 +150,18 @@ SESSION_CACHE_ALIAS = "default"
 
 MIDDLEWARE = [
     # Security & CORS first
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    
-    # WhiteNoise for static files
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    
-    # Core Django components
+    'corsheaders.middleware.CorsMiddleware',
+    'core.middleware.APIKeyMiddleware',  # Add our custom middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    
     # Security headers
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'csp.middleware.CSPMiddleware',
-    
     # Cache middleware (placed AFTER security/CORS)
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware',

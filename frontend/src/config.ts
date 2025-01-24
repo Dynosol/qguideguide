@@ -1,7 +1,6 @@
 const config = {
-  apiBaseUrl: import.meta.env.PROD 
-    ? 'https://qguideguide.onrender.com'  // Production API URL
-    : 'http://127.0.0.1:8000',   // Development API URL (HTTP)
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'https://qguideguide.onrender.com',
+  apiKey: import.meta.env.VITE_API_KEY || 'your-dev-api-key-here'
 };
 
 export default config;

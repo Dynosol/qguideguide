@@ -3,6 +3,9 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 .guide {
@@ -31,6 +34,8 @@ body.dark-mode .guide {
   height: 92vh;
   background-color: #fff;
   overflow-x: auto;
+  position: absolute;
+  top: 8vh;
 }
 
 body.dark-mode .professors-container {
