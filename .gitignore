@@ -84,3 +84,24 @@ db.sqlite3
 .env
 ./backend/.env
 ./backend/courses/static/json/course_data.json
+
+# Scraping materials
+scraping_materials/
+scraping_material/
+**/old_data/
+**/all_qguide_data.json
+**/instructor_rankings.json
+
+# Backend static JSON files
+backend/staticfiles/json/
+backend/courses/static/json/
+backend/professors/static/json/
+
+# Database dumps and backups
+db_dump.json
+professors_dump.json
+db_backup.json
+data.json
+
+# Frontend build artifacts
+frontend/dist/manifest.json
