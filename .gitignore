@@ -108,3 +108,8 @@ data.json
 
 # Frontend build artifacts
 frontend/dist/manifest.json
+
+frontend/.env.development
+frontend/.env.production
+backend/.env.neon
+backend/.env.dev
