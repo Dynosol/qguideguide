@@ -35,13 +35,15 @@ const About: React.FC = () => {
     <div className="about min-h-screen transition-colors duration-300 flex flex-col items-center justify-center py-12 pt-20">
       <div className="container mx-auto px-4">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-semibold text-gray-800 dark:text-gray-100 mb-4">
+        <div className="text-center">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-semibold text-gray-800 dark:text-gray-100 mb-10">
             About the QGuideGuide
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
-            <i>This tool was created because it's hard to compare courses to each other and against themselves across semesters in the official QGuide. This is a faster tool to search the QGuide, filter by any metric, and compare courses based on historical data (currently supports Fall 2019 - Spring 2023)</i>
-          </p>
+          <div className="mb-16">
+            <p className="text-base md:text-lg text-gray-600 dark:text-gray-300">
+              <i>This tool was created because it's hard to compare courses to each other and against themselves across semesters in the official QGuide. This is a faster tool to search the QGuide, filter by any metric, and compare courses based on historical data (currently supports Fall 2019 - Spring 2023)</i>
+            </p>
+          </div>
         </div>
 
         {/* Grid of Cards */}
@@ -142,35 +144,32 @@ const About: React.FC = () => {
                 bg-white dark:bg-gray-800 
                 rounded-lg 
                 relative 
-                w-[405px] h-[560px] 
-                overflow-hidden 
+                min-h-[200px]
                 transition-colors duration-300
                 border border-gray-400 dark:border-transparent
                 shadow-xl
                 flex
-                items-center
-                justify-center
+                flex-col
               "
             >
               <div className="
                 card-content 
-                absolute inset-0 
                 bg-white dark:bg-zinc-900
                 rounded-lg 
-                p-8 
+                p-6 
                 flex 
                 flex-col 
-                justify-center 
-                items-center 
+                gap-4
                 text-center
                 transition-transform duration-300
+                h-full
               ">
-                <h3 className="mb-2 text-gray-800 dark:text-gray-100 text-xl font-demibold">
+                <h3 className="text-gray-800 dark:text-gray-100 text-xl font-semibold">
                   {card.title}
                 </h3>
-                <h4 className="text-base text-gray-600 dark:text-gray-300 ps-2">
+                <div className="text-base text-gray-600 dark:text-gray-300">
                   {card.subtitle}
-                </h4>
+                </div>
               </div>
             </div>
           ))}

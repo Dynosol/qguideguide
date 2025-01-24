@@ -1,16 +1,20 @@
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.conf import settings
 from django.core.cache import cache
 import time
 import logging
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from django.urls import resolve
 
 # Set up loggers
 security_logger = logging.getLogger('security')
 api_logger = logging.getLogger('api')
 
-class APIKeyMiddleware:
+class JWTAuthMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
+        self.jwt_auth = JWTAuthentication()
 
     def __call__(self, request):
         # Log all headers for debugging
@@ -23,74 +27,51 @@ class APIKeyMiddleware:
             }
         )
 
-        # Skip API key check for OPTIONS requests (CORS preflight)
+        # Skip JWT check for OPTIONS requests (CORS preflight)
         if request.method == 'OPTIONS':
             response = self.get_response(request)
             origin = request.headers.get('Origin')
             if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
                 response['Access-Control-Allow-Origin'] = origin
                 response['Access-Control-Allow-Credentials'] = 'true'
-                response['Access-Control-Allow-Headers'] = 'x-api-key, content-type'
+                response['Access-Control-Allow-Headers'] = 'Authorization, Content-Type'
                 response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, HEAD, OPTIONS'
                 response['Access-Control-Expose-Headers'] = 'last-modified'
             return response
 
-        # Skip API key check for development
+        # Skip JWT check for development if DEBUG is True
         if settings.DEBUG:
             return self.get_response(request)
 
-        # Only check API routes
-        if request.path.startswith('/api/'):
-            api_key = request.headers.get('X-API-Key')
-            client_ip = self.get_client_ip(request)
-            
-            # Log API access
-            api_logger.info(
-                'API Request',
-                extra={
-                    'ip': client_ip,
-                    'path': request.path,
-                    'method': request.method,
-                    'api_key_present': bool(api_key),
-                    'api_key_matches': api_key == settings.API_KEY
-                }
+        # Skip JWT check for non-API routes and token endpoints
+        if not request.path.startswith('/api/') or request.path in ['/api/token/', '/api/token/refresh/']:
+            return self.get_response(request)
+
+        try:
+            # Get the Authorization header
+            auth_header = request.headers.get('Authorization')
+            if not auth_header:
+                return JsonResponse(
+                    {'error': 'Authorization header is missing'}, 
+                    status=401
+                )
+
+            # Validate the JWT token
+            validated_token = self.jwt_auth.get_validated_token(
+                self.jwt_auth.get_raw_token(auth_header)
             )
             
-            if not api_key or api_key != settings.API_KEY:
-                # Log security event
-                security_logger.warning(
-                    'Invalid API key attempt',
-                    extra={
-                        'ip': client_ip,
-                        'path': request.path,
-                        'method': request.method,
-                        'provided_key': api_key,
-                        'expected_key': settings.API_KEY
-                    }
-                )
-                return JsonResponse({'error': 'Invalid API key'}, status=403)
+            # Add the validated token to the request for use in views
+            request.validated_token = validated_token
+            
+            return self.get_response(request)
 
-        response = self.get_response(request)
-        
-        # Add CORS headers for successful responses
-        if request.path.startswith('/api/'):
-            origin = request.headers.get('Origin')
-            if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
-                response['Access-Control-Allow-Origin'] = origin
-                response['Access-Control-Allow-Credentials'] = 'true'
-                response['Access-Control-Expose-Headers'] = 'last-modified'
-                
-                # Add cache control headers - allow caching but require revalidation
-                response['Cache-Control'] = 'no-cache, must-revalidate'
-                response['Pragma'] = 'no-cache'
-                
-                # Handle HEAD requests same as GET
-                if request.method in ['HEAD', 'GET']:
-                    response['Access-Control-Allow-Headers'] = 'x-api-key, content-type'
-                    response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, HEAD, OPTIONS'
-        
-        return response
-    
+        except (InvalidToken, TokenError) as e:
+            return JsonResponse(
+                {'error': str(e)}, 
+                status=401
+            )
+
     def get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
         if x_forwarded_for:
@@ -170,7 +151,7 @@ class RateLimitMiddleware:
                 
                 # Handle HEAD requests same as GET
                 if request.method in ['HEAD', 'GET']:
-                    response['Access-Control-Allow-Headers'] = 'x-api-key, content-type'
+                    response['Access-Control-Allow-Headers'] = 'Authorization, Content-Type'
                     response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, HEAD, OPTIONS'
         
         return response

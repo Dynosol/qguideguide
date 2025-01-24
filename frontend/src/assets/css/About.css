@@ -1,20 +1,19 @@
 #cards {
   display: grid;
-  grid-template-columns: repeat(2, 500px);
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
   padding: 1rem;
-  max-width: 1050px;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
-  justify-content: center;
 }
 
 .card {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   position: relative;
-  min-height: 550px;
-  height: auto;
-  width: 500px;
+  height: 100%;
+  width: 100%;
   border: 1px solid rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease;
 }
@@ -68,11 +67,13 @@ body.dark-mode .card {
   border-radius: inherit;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
-  inset: 1px;
-  padding: 20px;
-  position: absolute;
+  height: 100%;
+  width: 100%;
+  padding: 1.5rem;
   z-index: 2;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
 }
 
 /* Link Styles */
@@ -101,21 +102,7 @@ body.dark-mode .card {
 }
 
 /* Responsive Styles */
-@media (max-width: 1020px) {
-  #cards {
-    grid-template-columns: 500px;
-    max-width: 500px;
-  }
-}
-
 @media (max-width: 600px) {
-  #cards {
-    grid-template-columns: 1fr;
-    padding: 0.5rem;
-    width: 100%;
-    max-width: 500px;
-  }
-  
   .card {
     width: calc(100% - 1rem);
     max-width: 500px;
