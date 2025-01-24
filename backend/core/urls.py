@@ -93,7 +93,4 @@ urlpatterns = [
 
     # API endpoints
     path('api/', include(api_router.urls)),
-    
-    # Catch all other routes and let React handle them
-    re_path(r'^.*$', TemplateView.as_view(template_name='index.html'), name='index'),
 ]
