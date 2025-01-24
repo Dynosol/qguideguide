@@ -7,6 +7,7 @@ import { ProfessorsTable } from './ProfessorsTable';
 import { DepartmentsTable } from './DepartmentsTable';
 import { db, Professor, Department } from './db';
 import config from '../../config';
+import api from '../../api'; // Import the configured API client
 import '/src/assets/css/Prof.css';
 
 const Prof: React.FC = () => {
@@ -27,7 +28,7 @@ const Prof: React.FC = () => {
 
         if (localProfessors.length > 0 && localDepartments.length > 0 && lastUpdateTime) {
           // Check if server data has been updated
-          const response = await axios.head(`${config.apiBaseUrl}/api/professors/`);
+          const response = await api.head('/api/professors/');
           const serverLastModified = response.headers['last-modified'];
 
           if (serverLastModified && new Date(serverLastModified) <= new Date(lastUpdateTime.value)) {
@@ -41,8 +42,8 @@ const Prof: React.FC = () => {
 
         // Fetch new data in parallel if cache is invalid or empty
         const [professorsResponse, departmentsResponse] = await Promise.all([
-          axios.get(`${config.apiBaseUrl}/api/professors/`),
-          axios.get(`${config.apiBaseUrl}/api/departments/`)
+          api.get('/api/professors/'),
+          api.get('/api/departments/')
         ]);
 
         const currentTime = new Date().toISOString();
