@@ -36,18 +36,23 @@ class CourseViewSet(ThrottledViewSet):
 
     def list(self, request, *args, **kwargs):
         start_time = time.time()
+        cache_time = 0
+        db_time = 0
 
-        # Start timing database query
-        db_start_time = time.time()
         try:
-            # Get data from cache
-            data = get_cached_data('courses_list_data')  
+            # Try to get data from cache
+            cache_start = time.time()
+            data = get_cached_data('courses_list_data')
+            cache_time = (time.time() - cache_start) * 1000
+
             if data is None:
-                # If cache completely fails, fall back to database
+                # If cache fails, fall back to database
+                db_start = time.time()
                 queryset = self.get_queryset()
                 serializer = self.get_serializer(queryset, many=True)
                 data = serializer.data
-                cache.set('courses_list_data', data, 60 * 60 * 24)  
+                db_time = (time.time() - db_start) * 1000
+                logger.warning("Cache miss for courses_list_data, used database")
             
             # Handle pagination
             page = self.paginate_queryset(data)
@@ -57,14 +62,19 @@ class CourseViewSet(ThrottledViewSet):
                 response = Response(data)
             
             # Calculate total duration
-            total_duration = (time.time() - start_time) * 1000  
+            total_duration = (time.time() - start_time) * 1000
 
-            # Set Server-Timing header
-            response['Server-Timing'] = f"db;dur={(time.time() - db_start_time) * 1000:.2f}, total;dur={total_duration:.2f}"
-
+            # Set Server-Timing header with detailed timing
+            timings = [
+                f"cache;dur={cache_time:.2f}",
+                f"db;dur={db_time:.2f}",
+                f"total;dur={total_duration:.2f}"
+            ]
+            response['Server-Timing'] = ', '.join(timings)
+            
             return response
         except Exception as e:
-            logger.error(f"Error in CourseViewSet.list: {str(e)}")
+            logger.error(f"Error in CourseViewSet.list: {str(e)}", exc_info=True)
             return Response(
                 {"error": "An error occurred while fetching courses"},
                 status=500

@@ -5,8 +5,11 @@ services:
     env: python
     buildCommand: |
       pip install -r requirements.txt
-      python scripts/warm_cache.py  # Warm the cache during deployment
-    startCommand: gunicorn core.wsgi:application
+      python manage.py migrate  # Run migrations first
+      python scripts/warm_cache.py  # Then warm the cache
+    startCommand: |
+      python scripts/warm_cache.py  # Warm cache again on startup
+      gunicorn core.wsgi:application
     rootDir: backend
     envVars:
       - key: PYTHON_VERSION
