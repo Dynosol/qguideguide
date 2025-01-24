@@ -14,6 +14,7 @@ from pathlib import Path
 import os
 from decouple import config
 import dj_database_url
+import stat
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -98,8 +99,14 @@ if DEBUG:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 else:
+    ALLOWED_HOSTS = ['api.qguideguide.com']
+    # In production, only allow specific origins
+    CORS_ALLOWED_ORIGINS = [
+        'https://qguideguide.com',
+        'https://www.qguideguide.com'
+    ]
     CORS_ALLOW_CREDENTIALS = True
-    # Production security settings
+    # Security settings for production
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -110,6 +117,17 @@ else:
     SECURE_HSTS_PRELOAD = True
     X_FRAME_OPTIONS = 'DENY'
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # Additional security headers
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    
+    # Content Security Policy
+    CSP_DEFAULT_SRC = ("'self'",)
+    CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
+    CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'")
+    CSP_IMG_SRC = ("'self'", "data:", "https:")
+    CSP_CONNECT_SRC = ("'self'", "https://api.qguideguide.com")
 
 # Application definition
 
@@ -169,10 +187,10 @@ else:
     SESSION_CACHE_ALIAS = "default"
 
 MIDDLEWARE = [
-    # Security & CORS first
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'core.middleware.RateLimitMiddleware',  # Add rate limiting
     'core.middleware.APIKeyMiddleware',  # Add our custom middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -309,3 +327,104 @@ CSP_BASE_URI = ("'self'",)
 CSP_FRAME_ANCESTORS = ("'none'",)
 CSP_FORM_ACTION = ("'self'",)
 CSP_INCLUDE_NONCE_IN = ['script-src']
+
+# Logging Configuration
+LOG_DIR = '/var/log/qguideguide' if not DEBUG else 'logs'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+        'security': {
+            'format': '[%(asctime)s] %(levelname)s SECURITY [%(name)s:%(lineno)s] %(message)s - IP: %(ip)s Path: %(path)s User: %(user)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'security': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
+        'api': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+# Only add file handlers in development
+if DEBUG:
+    LOGGING['handlers'].update({
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_DIR, 'django.log'),
+            'formatter': 'verbose',
+            'maxBytes': 10485760,  # 10MB
+            'backupCount': 10,
+            'encoding': 'utf-8',
+        },
+        'security_file': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_DIR, 'security.log'),
+            'formatter': 'security',
+            'maxBytes': 10485760,
+            'backupCount': 20,
+            'encoding': 'utf-8',
+        },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_DIR, 'error.log'),
+            'formatter': 'verbose',
+            'maxBytes': 10485760,
+            'backupCount': 20,
+            'encoding': 'utf-8',
+        },
+    })
+    
+    # Add file handlers to loggers in development
+    LOGGING['loggers']['django']['handlers'].append('file')
+    LOGGING['loggers']['django']['handlers'].append('error_file')
+    LOGGING['loggers']['django.request']['handlers'].append('error_file')
+    LOGGING['loggers']['security']['handlers'].append('security_file')
+    LOGGING['loggers']['api']['handlers'].append('file')
+    LOGGING['loggers']['api']['handlers'].append('error_file')
+
+    # Create log directory and files in development
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
+        # Set directory permissions to 755 (rwxr-xr-x)
+        os.chmod(LOG_DIR, stat.S_IRWXU | stat.S_IRGRP | stat.S_IXGRP | stat.S_IROTH | stat.S_IXOTH)
+
+    # Create log files if they don't exist and set permissions to 644 (rw-r--r--)
+    log_files = ['django.log', 'security.log', 'error.log']
+    for log_file in log_files:
+        log_path = os.path.join(LOG_DIR, log_file)
+        if not os.path.exists(log_path):
+            open(log_path, 'a').close()
+            os.chmod(log_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)

@@ -8,6 +8,7 @@ const api = axios.create({
     'X-API-Key': config.apiKey,
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enable sending cookies with requests
 });
 
 // Add request interceptor for logging
