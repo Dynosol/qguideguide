@@ -27,16 +27,21 @@ const Prof: React.FC = () => {
         const lastUpdateTime = await db.metadata.get('lastUpdate');
 
         if (localProfessors.length > 0 && localDepartments.length > 0 && lastUpdateTime) {
-          // Check if server data has been updated
-          const response = await api.head('/api/professors/');
-          const serverLastModified = response.headers['last-modified'];
+          try {
+            // Check if server data has been updated
+            const response = await api.head('/api/professors/');
+            const serverLastModified = response.headers['last-modified'];
 
-          if (serverLastModified && new Date(serverLastModified) <= new Date(lastUpdateTime.value)) {
-            // Use cached data if server hasn't updated
-            setProfessorsData(localProfessors);
-            setDepartmentsData(localDepartments);
-            setIsLoading(false);
-            return;
+            if (serverLastModified && new Date(serverLastModified) <= new Date(lastUpdateTime.value)) {
+              // Use cached data if server hasn't updated
+              setProfessorsData(localProfessors);
+              setDepartmentsData(localDepartments);
+              setIsLoading(false);
+              return;
+            }
+          } catch (error) {
+            // If HEAD request fails, fallback to fetching fresh data
+            console.warn('Cache validation failed, fetching fresh data:', error);
           }
         }
 

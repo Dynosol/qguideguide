@@ -47,12 +47,14 @@ class ProfessorViewSet(viewsets.ModelViewSet):
 
     def head(self, request, *args, **kwargs):
         try:
+            # Check permissions first
+            self.check_permissions(request)
+            
             latest_update = Professor.objects.aggregate(Max('modified_at'))['modified_at__max']
+            response = Response()
             if latest_update:
-                response = Response()
                 response['Last-Modified'] = http_date(datetime.timestamp(latest_update))
-                return response
-            return Response()
+            return response
         except Exception as e:
             logger.error(f"Error in ProfessorViewSet.head: {str(e)}")
             return Response(status=500)
@@ -88,12 +90,14 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     # Mirror ProfessorViewSet's head method
     def head(self, request, *args, **kwargs):
         try:
+            # Check permissions first
+            self.check_permissions(request)
+            
             latest_update = Department.objects.aggregate(Max('modified_at'))['modified_at__max']
+            response = Response()
             if latest_update:
-                response = Response()
                 response['Last-Modified'] = http_date(datetime.timestamp(latest_update))
-                return response
-            return Response()
+            return response
         except Exception as e:
             logger.error(f"Error in DepartmentViewSet.head: {str(e)}")
             return Response(status=500)
