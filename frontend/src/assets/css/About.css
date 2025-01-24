@@ -15,8 +15,12 @@
   min-height: 550px;
   height: auto;
   width: 500px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.2);
   transition: transform 0.3s ease;
+}
+
+body.dark-mode .card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .card::before,
