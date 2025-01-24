@@ -1,12 +1,14 @@
 from django.db.models import Q, Max
-from rest_framework import viewsets
+from rest_framework import viewsets, filters
 from rest_framework.response import Response
+from rest_framework_datatables import filters as dt_filters
 from .models import Course
 from .serializers import CourseSerializer
 from rest_framework.pagination import LimitOffsetPagination
 from django.utils.http import http_date
 from datetime import datetime
 from core.cache_utils import get_cached_data
+from core.viewsets import ThrottledViewSet
 import logging
 
 REQUEST_LIMIT = None
@@ -21,7 +23,7 @@ class CoursePagination(LimitOffsetPagination):
 
 logger = logging.getLogger(__name__)
 
-class CourseViewSet(viewsets.ModelViewSet):
+class CourseViewSet(ThrottledViewSet):
     queryset = Course.objects.all().order_by('title')
     serializer_class = CourseSerializer
     pagination_class = CoursePagination

@@ -3,13 +3,17 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView
 from django.conf import settings
 from django.contrib.auth.models import User
+from core.throttling import TokenRateThrottle
 import uuid
 
 # Create your views here.
 
 class GetAPIToken(APIView):
+    throttle_classes = [TokenRateThrottle]
+    
     def post(self, request):
         # Check if the request has the API key
         api_key = request.headers.get('X-API-Key')
@@ -34,3 +38,6 @@ class GetAPIToken(APIView):
             'access': str(refresh.access_token),
             'refresh': str(refresh),
         })
+
+class CustomTokenRefreshView(TokenRefreshView):
+    throttle_classes = [TokenRateThrottle]

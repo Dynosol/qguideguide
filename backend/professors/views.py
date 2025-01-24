@@ -1,5 +1,6 @@
 from django.shortcuts import render
-from rest_framework import viewsets, pagination
+from rest_framework import viewsets, pagination, filters
+from rest_framework_datatables import filters as dt_filters
 from .models import Professor, Department
 from rest_framework.pagination import LimitOffsetPagination
 from .serializers import ProfessorSerializer, DepartmentSerializer
@@ -8,6 +9,7 @@ from django.db.models import Max
 from datetime import datetime
 from rest_framework.response import Response
 from core.cache_utils import get_cached_data
+from core.viewsets import ThrottledViewSet
 import logging
 
 logger = logging.getLogger(__name__)
@@ -17,7 +19,7 @@ REQUEST_LIMIT = None
 class ProfessorPagination(LimitOffsetPagination):
     default_limit = REQUEST_LIMIT  # Number of records per page
 
-class ProfessorViewSet(viewsets.ModelViewSet):
+class ProfessorViewSet(ThrottledViewSet):
     queryset = Professor.objects.all().order_by('empirical_bayes_rank')
     serializer_class = ProfessorSerializer
     pagination_class = ProfessorPagination
@@ -59,7 +61,7 @@ class ProfessorViewSet(viewsets.ModelViewSet):
             logger.error(f"Error in ProfessorViewSet.head: {str(e)}")
             return Response(status=500)
 
-class DepartmentViewSet(viewsets.ModelViewSet):
+class DepartmentViewSet(ThrottledViewSet):
     queryset = Department.objects.all().order_by('name')
     serializer_class = DepartmentSerializer
     pagination_class = ProfessorPagination

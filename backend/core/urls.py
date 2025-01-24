@@ -20,7 +20,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
-from authentication.views import GetAPIToken
+from authentication.views import GetAPIToken, CustomTokenRefreshView
 from courses.views import CourseViewSet
 from professors.views import ProfessorViewSet, DepartmentViewSet
 from django.views.generic import TemplateView
@@ -95,7 +95,7 @@ urlpatterns = [
 
     # JWT token URLs
     path('api/token/', GetAPIToken.as_view(), name='token_obtain'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
 
     # API endpoints
     path('api/', include(api_router.urls)),
