@@ -1,2 +1,9 @@
 [2025-01-24 03:58:56] INFO [django.utils.autoreload:668] Watching for file changes with StatReloader
 [2025-01-24 03:59:08] INFO [django.server:213] "GET /api/professors/ HTTP/1.1" 200 644174
+[2025-01-24 04:03:31] INFO [django.utils.autoreload:266] /Users/sol/dev/qguideguide/backend/professors/views.py changed, reloading.
+[2025-01-24 04:03:34] INFO [django.utils.autoreload:668] Watching for file changes with StatReloader
+[2025-01-24 04:03:47] INFO [django.utils.autoreload:266] /Users/sol/dev/qguideguide/backend/courses/views.py changed, reloading.
+[2025-01-24 04:03:48] INFO [django.utils.autoreload:668] Watching for file changes with StatReloader
+[2025-01-24 04:04:35] INFO [django.utils.autoreload:266] /Users/sol/dev/qguideguide/backend/core/settings.py changed, reloading.
+[2025-01-24 04:04:37] INFO [django.utils.autoreload:668] Watching for file changes with StatReloader
+[2025-01-24 04:04:50] INFO [django.utils.autoreload:266] /Users/sol/dev/qguideguide/backend/core/settings.py changed, reloading.

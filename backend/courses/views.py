@@ -7,6 +7,7 @@ from rest_framework.pagination import LimitOffsetPagination
 from django.utils.http import http_date
 from datetime import datetime
 from core.cache_utils import get_cached_data
+import logging
 
 REQUEST_LIMIT = None
 
@@ -18,26 +19,44 @@ class CoursePagination(LimitOffsetPagination):
     default_limit = 10
     max_limit = 50
 
+logger = logging.getLogger(__name__)
+
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all().order_by('title')
     serializer_class = CourseSerializer
     pagination_class = CoursePagination
 
     def list(self, request, *args, **kwargs):
-        # Get data from cache
-        data = get_cached_data('courses_data')
-        
-        # Handle pagination
-        page = self.paginate_queryset(data)
-        if page is not None:
-            return self.get_paginated_response(page)
-        
-        return Response(data)
+        try:
+            # Get data from cache
+            data = get_cached_data('courses_data')
+            if data is None:
+                # If cache completely fails, fall back to database
+                queryset = self.get_queryset()
+                serializer = self.get_serializer(queryset, many=True)
+                data = serializer.data
+            
+            # Handle pagination
+            page = self.paginate_queryset(data)
+            if page is not None:
+                return self.get_paginated_response(page)
+            
+            return Response(data)
+        except Exception as e:
+            logger.error(f"Error in CourseViewSet.list: {str(e)}")
+            return Response(
+                {"error": "An error occurred while fetching courses"},
+                status=500
+            )
 
     def head(self, request, *args, **kwargs):
-        latest_update = Course.objects.aggregate(Max('modified_at'))['modified_at__max']
-        if latest_update:
-            response = Response()
-            response['Last-Modified'] = http_date(datetime.timestamp(latest_update))
-            return response
-        return Response()
+        try:
+            latest_update = Course.objects.aggregate(Max('modified_at'))['modified_at__max']
+            if latest_update:
+                response = Response()
+                response['Last-Modified'] = http_date(datetime.timestamp(latest_update))
+                return response
+            return Response()
+        except Exception as e:
+            logger.error(f"Error in CourseViewSet.head: {str(e)}")
+            return Response(status=500)
