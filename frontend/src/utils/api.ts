@@ -1,22 +1,25 @@
 import axios from 'axios';
 import config from '../config';
+import AuthService from './auth';
 
 // Create an axios instance with default config
 const api = axios.create({
   baseURL: config.apiBaseUrl,
   headers: {
-    'X-API-Key': config.apiKey,
     'Content-Type': 'application/json',
   },
   withCredentials: true, // Enable sending cookies with requests
 });
 
-// Add request interceptor for logging and header consistency
-api.interceptors.request.use(request => {
-  // Set default headers for all requests including HEAD
-  request.headers['X-API-Key'] = config.apiKey;
-  request.headers['Content-Type'] = 'application/json';
-
+// Add request interceptor for JWT token
+api.interceptors.request.use(async request => {
+  const auth = AuthService.getInstance();
+  const token = auth.getAccessToken();
+  
+  if (token) {
+    request.headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   // Log request for debugging
   console.log('API Request:', {
     url: request.url,
@@ -27,10 +30,29 @@ api.interceptors.request.use(request => {
   return request;
 });
 
-// Add response interceptor for error handling
+// Add response interceptor for error handling and token refresh
 api.interceptors.response.use(
   response => response,
-  error => {
+  async error => {
+    const originalRequest = error.config;
+
+    // If error is 401 and we haven't tried refreshing token yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      try {
+        const auth = AuthService.getInstance();
+        const newToken = await auth.handleTokenRefresh();
+        
+        // Update the failed request with new token and retry
+        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+        return axios(originalRequest);
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+        return Promise.reject(refreshError);
+      }
+    }
+
     console.error('API Error:', {
       url: error.config?.url,
       method: error.config?.method,
@@ -41,6 +63,14 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Initialize auth service when the app starts
+const initializeAuth = async () => {
+  const auth = AuthService.getInstance();
+  await auth.initialize();
+};
+
+initializeAuth().catch(console.error);
 
 export const fetchProfessors = () => api.get('/api/professors/');
 export const fetchDepartments = () => api.get('/api/departments/');
