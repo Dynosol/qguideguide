@@ -15,6 +15,9 @@
   justify-content: center;
   padding: 0 2vw;
   color: var(--text-color-light);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  white-space: nowrap;
 }
 
 body.dark-mode .guide {
@@ -26,8 +29,8 @@ body.dark-mode .guide {
   display: flex;
   width: 100%;
   height: 92vh;
-  margin-top: 8vh;
   background-color: #fff;
+  overflow-x: auto;
 }
 
 body.dark-mode .professors-container {
@@ -39,7 +42,9 @@ body.dark-mode .professors-container {
 .section-right {
   padding: 1rem;
   overflow-y: auto;
+  overflow-x: auto;
   background-color: #fff;
+  min-width: min-content;
 }
 
 body.dark-mode .section-left,
@@ -51,10 +56,12 @@ body.dark-mode .section-right {
 
 .section-left {
   flex: 2;
+  min-width: 800px;
 }
 
 .section-right {
   flex: 1;
+  min-width: 400px;
 }
 
 .guide-link {
