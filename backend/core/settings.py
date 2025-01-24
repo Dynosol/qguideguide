@@ -99,11 +99,16 @@ if DEBUG:
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
 else:
-    ALLOWED_HOSTS = ['api.qguideguide.com']
+    ALLOWED_HOSTS = [
+        'api.qguideguide.com',
+        'qguideguide.onrender.com',  
+        '.qguideguide.com'  
+    ]
     # In production, only allow specific origins
     CORS_ALLOWED_ORIGINS = [
         'https://qguideguide.com',
-        'https://www.qguideguide.com'
+        'https://www.qguideguide.com',
+        'https://qguideguide.onrender.com'  
     ]
     CORS_ALLOW_CREDENTIALS = True
     # Security settings for production
