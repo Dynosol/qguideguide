@@ -31,8 +31,9 @@ API_KEY = config('API_KEY', default='your-dev-api-key-here')
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 # Base allowed hosts and CORS settings
-ALLOWED_HOSTS = ['qguideguide.com', 'www.qguideguide.com', 'qguideguide.onrender.com']
+ALLOWED_HOSTS = ['api.qguideguide.com', 'qguideguide.com', 'www.qguideguide.com', 'qguideguide.onrender.com']
 CSRF_TRUSTED_ORIGINS = [
+    'https://api.qguideguide.com',
     'https://qguideguide.com',
     'https://www.qguideguide.com',
     'https://qguideguide.onrender.com',
