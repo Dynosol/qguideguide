@@ -1,7 +1,7 @@
 from rest_framework import throttling
 
 class TokenRateThrottle(throttling.AnonRateThrottle):
-    rate = '1/minute'
+    rate = '5/minute'
     scope = 'token_gen'
 
     def get_cache_key(self, request, view):

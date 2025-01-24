@@ -194,7 +194,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '20/hour',  
         'user': '100/hour',  
-        'token_gen': '1/minute',  
+        'token_gen': '5/minute',  
         'api_endpoints': '50/hour',  
     },
 }
