@@ -11,8 +11,14 @@ const api = axios.create({
   withCredentials: true, // Enable sending cookies with requests
 });
 
-// Add request interceptor for logging
+// Add request interceptor for logging and header consistency
 api.interceptors.request.use(request => {
+  // Ensure API key is set for all requests including HEAD
+  if (!request.headers['X-API-Key']) {
+    request.headers['X-API-Key'] = config.apiKey;
+  }
+
+  // Log request for debugging
   console.log('API Request:', {
     url: request.url,
     method: request.method,
@@ -21,6 +27,21 @@ api.interceptors.request.use(request => {
   });
   return request;
 });
+
+// Add response interceptor for error handling
+api.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      headers: error.config?.headers,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    return Promise.reject(error);
+  }
+);
 
 export const fetchProfessors = () => api.get('/api/professors/');
 export const fetchDepartments = () => api.get('/api/departments/');

@@ -13,6 +13,16 @@ class APIKeyMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # Log all headers for debugging
+        api_logger.info(
+            'Request Headers',
+            extra={
+                'headers': dict(request.headers),
+                'method': request.method,
+                'path': request.path
+            }
+        )
+
         # Skip API key check for OPTIONS requests (CORS preflight)
         if request.method == 'OPTIONS':
             response = self.get_response(request)
@@ -41,7 +51,8 @@ class APIKeyMiddleware:
                     'ip': client_ip,
                     'path': request.path,
                     'method': request.method,
-                    'user': 'anonymous'  # Simplified as we don't need user info for API logging
+                    'api_key_present': bool(api_key),
+                    'api_key_matches': api_key == settings.API_KEY
                 }
             )
             
@@ -53,7 +64,8 @@ class APIKeyMiddleware:
                         'ip': client_ip,
                         'path': request.path,
                         'method': request.method,
-                        'provided_key': api_key
+                        'provided_key': api_key,
+                        'expected_key': settings.API_KEY
                     }
                 )
                 return JsonResponse({'error': 'Invalid API key'}, status=403)
@@ -67,6 +79,11 @@ class APIKeyMiddleware:
                 response['Access-Control-Allow-Origin'] = origin
                 response['Access-Control-Allow-Credentials'] = 'true'
                 response['Access-Control-Expose-Headers'] = 'last-modified'
+                # Add cache control headers
+                response['Cache-Control'] = 'no-cache'
+                if request.method == 'HEAD':
+                    response['Access-Control-Allow-Headers'] = 'x-api-key, content-type'
+                    response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, HEAD, OPTIONS'
         
         return response
     
@@ -83,6 +100,16 @@ class RateLimitMiddleware:
         self.window = 60  # seconds
 
     def __call__(self, request):
+        # Log all headers for debugging
+        api_logger.info(
+            'Request Headers',
+            extra={
+                'headers': dict(request.headers),
+                'method': request.method,
+                'path': request.path
+            }
+        )
+
         if request.method not in ['OPTIONS', 'HEAD'] and request.path.startswith('/api/'):
             ip = self.get_client_ip(request)
             key = f'rate_limit:{ip}'
@@ -123,7 +150,22 @@ class RateLimitMiddleware:
                     }
                 )
         
-        return self.get_response(request)
+        response = self.get_response(request)
+        
+        # Add CORS headers for successful responses
+        if request.path.startswith('/api/'):
+            origin = request.headers.get('Origin')
+            if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
+                response['Access-Control-Allow-Origin'] = origin
+                response['Access-Control-Allow-Credentials'] = 'true'
+                response['Access-Control-Expose-Headers'] = 'last-modified'
+                # Add cache control headers
+                response['Cache-Control'] = 'no-cache'
+                if request.method == 'HEAD':
+                    response['Access-Control-Allow-Headers'] = 'x-api-key, content-type'
+                    response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, HEAD, OPTIONS'
+        
+        return response
     
     def get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
