@@ -15,12 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_GET
 from rest_framework.routers import DefaultRouter
 from courses.views import CourseViewSet
 from professors.views import ProfessorViewSet, DepartmentViewSet
+from django.views.generic import TemplateView
+from django.utils import timezone
 
 # Create API router
 api_router = DefaultRouter()
@@ -91,4 +93,7 @@ urlpatterns = [
 
     # API endpoints
     path('api/', include(api_router.urls)),
+    
+    # Catch all other routes and let React handle them
+    re_path(r'^.*$', TemplateView.as_view(template_name='index.html'), name='index'),
 ]
