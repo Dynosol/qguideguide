@@ -7,7 +7,7 @@ import { ProfessorsTable } from './ProfessorsTable';
 import { DepartmentsTable } from './DepartmentsTable';
 import { db, Professor, Department } from './db';
 import config from '../../config';
-import api from '../../api'; // Import the configured API client
+import api from '../../utils/api'; // Update the import path to point to utils/api
 import '/src/assets/css/Prof.css';
 
 const Prof: React.FC = () => {
