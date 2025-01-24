@@ -1,7 +1,6 @@
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.core.cache import cache
-from django.http import HttpResponseTooManyRequests
 import time
 import logging
 
@@ -102,7 +101,7 @@ class RateLimitMiddleware:
                         'request_count': len(requests)
                     }
                 )
-                return HttpResponseTooManyRequests("Rate limit exceeded. Please try again later.")
+                return HttpResponse("Rate limit exceeded. Please try again later.", status=429)
             
             # Add the current request and update the cache
             requests.append(now)
