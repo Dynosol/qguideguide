@@ -1,0 +1,2 @@
+[2025-01-24 03:58:56] INFO [django.utils.autoreload:668] Watching for file changes with StatReloader
+[2025-01-24 03:59:08] INFO [django.server:213] "GET /api/professors/ HTTP/1.1" 200 644174
