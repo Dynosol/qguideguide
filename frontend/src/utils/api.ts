@@ -10,6 +10,17 @@ const api = axios.create({
   },
 });
 
+// Add request interceptor for logging
+api.interceptors.request.use(request => {
+  console.log('API Request:', {
+    url: request.url,
+    method: request.method,
+    headers: request.headers,
+    baseURL: request.baseURL
+  });
+  return request;
+});
+
 export const fetchProfessors = () => api.get('/api/professors/');
 export const fetchDepartments = () => api.get('/api/departments/');
 export const fetchCourses = () => api.get('/api/courses/');

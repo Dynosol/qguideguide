@@ -6,6 +6,10 @@ class APIKeyMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # Skip API key check for OPTIONS requests (CORS preflight)
+        if request.method == 'OPTIONS':
+            return self.get_response(request)
+
         # Skip API key check for development
         if settings.DEBUG:
             return self.get_response(request)
@@ -16,4 +20,12 @@ class APIKeyMiddleware:
             if not api_key or api_key != settings.API_KEY:
                 return JsonResponse({'error': 'Invalid API key'}, status=403)
         
-        return self.get_response(request)
+        response = self.get_response(request)
+        
+        # Ensure CORS headers are preserved
+        if 'Access-Control-Allow-Origin' not in response:
+            response['Access-Control-Allow-Origin'] = request.headers.get('Origin', '*')
+        if 'Access-Control-Allow-Credentials' not in response:
+            response['Access-Control-Allow-Credentials'] = 'true'
+        
+        return response

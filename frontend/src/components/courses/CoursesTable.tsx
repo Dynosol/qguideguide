@@ -6,12 +6,13 @@ import {
   useMaterialReactTable,
   type MRT_ColumnDef,
 } from 'material-react-table';
-import axios from 'axios';
 import { db, Course } from './db';
 import { useThemeContext } from '../../utils/themeHelper';
 import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/styles';
 import { colorPalettes } from '../../utils/colors';
 import { getCoursesColumns } from './Columns'; // Import the columns
+import { fetchCourses } from '../../utils/api';
+import axios from 'axios'; // Import axios
 import config from '../../config';
 
 const USER_KEYPRESS_SEARCHDELAY = 100; // in milliseconds
@@ -97,7 +98,9 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
   const fetchAndStoreCourses = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get(`${config.apiBaseUrl}/api/courses/`);
+      console.log('Fetching courses from:', config.apiBaseUrl);
+      const response = await fetchCourses();
+      console.log('Courses response:', response);
       
       // Extract courses array from response
       const courses = Array.isArray(response.data) ? response.data :
@@ -113,6 +116,14 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
       setData(courses);
     } catch (error) {
       console.error('Error fetching or storing courses:', error);
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error details:', {
+          response: error.response?.data,
+          status: error.response?.status,
+          headers: error.response?.headers,
+          config: error.config
+        });
+      }
     } finally {
       setIsLoading(false);
     }
