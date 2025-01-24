@@ -21,7 +21,8 @@ class APIKeyMiddleware:
                 response['Access-Control-Allow-Origin'] = origin
                 response['Access-Control-Allow-Credentials'] = 'true'
                 response['Access-Control-Allow-Headers'] = 'x-api-key, content-type'
-                response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+                response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, HEAD, OPTIONS'
+                response['Access-Control-Expose-Headers'] = 'last-modified'
             return response
 
         # Skip API key check for development
@@ -51,18 +52,21 @@ class APIKeyMiddleware:
                     extra={
                         'ip': client_ip,
                         'path': request.path,
-                        'user': 'anonymous'  # Simplified as we don't need user info for security logging
+                        'method': request.method,
+                        'provided_key': api_key
                     }
                 )
                 return JsonResponse({'error': 'Invalid API key'}, status=403)
-        
+
         response = self.get_response(request)
         
-        # Always ensure CORS headers are present
-        origin = request.headers.get('Origin')
-        if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
-            response['Access-Control-Allow-Origin'] = origin
-            response['Access-Control-Allow-Credentials'] = 'true'
+        # Add CORS headers for successful responses
+        if request.path.startswith('/api/'):
+            origin = request.headers.get('Origin')
+            if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
+                response['Access-Control-Allow-Origin'] = origin
+                response['Access-Control-Allow-Credentials'] = 'true'
+                response['Access-Control-Expose-Headers'] = 'last-modified'
         
         return response
     
@@ -79,7 +83,7 @@ class RateLimitMiddleware:
         self.window = 60  # seconds
 
     def __call__(self, request):
-        if request.method != 'OPTIONS' and request.path.startswith('/api/'):
+        if request.method not in ['OPTIONS', 'HEAD'] and request.path.startswith('/api/'):
             ip = self.get_client_ip(request)
             key = f'rate_limit:{ip}'
             
