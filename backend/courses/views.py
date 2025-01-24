@@ -1,6 +1,7 @@
 from django.db.models import Q, Max
 from rest_framework import viewsets, filters
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework_datatables import filters as dt_filters
 from .models import Course
 from .serializers import CourseSerializer, CourseListSerializer
@@ -24,9 +25,17 @@ class CoursePagination(LimitOffsetPagination):
 logger = logging.getLogger(__name__)
 
 class CourseViewSet(ThrottledViewSet):
-    queryset = Course.objects.all().order_by('title')
     serializer_class = CourseSerializer
     pagination_class = CoursePagination
+
+    def get_queryset(self):
+        """Return an optimized queryset"""
+        if self.action == 'list':
+            return Course.objects.only(
+                'id', 'title', 'department', 'instructor', 'term',
+                'course_mean_rating', 'responses'
+            ).order_by('title')
+        return Course.objects.all()
 
     def get_serializer_class(self):
         """Return different serializers for list and detail"""

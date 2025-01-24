@@ -13,17 +13,17 @@ class Course(models.Model):
         ('2023 Fall', '2023 Fall'),
     ]
 
-    title = models.CharField(max_length=1000)
-    department = models.CharField(max_length=1000)
-    instructor = models.CharField(max_length=1000)
-    term = models.CharField(max_length=100, choices=TERM_CHOICES)
+    title = models.CharField(max_length=1000, db_index=True)
+    department = models.CharField(max_length=1000, db_index=True)
+    instructor = models.CharField(max_length=1000, db_index=True)
+    term = models.CharField(max_length=100, choices=TERM_CHOICES, db_index=True)
     subject = models.CharField(max_length=1000)
     blue_course_id = models.CharField(max_length=100)
     url = models.URLField(max_length=1000)
-    responses = models.IntegerField(default=0)
+    responses = models.IntegerField(default=0, db_index=True)
     invited_responses = models.IntegerField(default=0)
     response_ratio = models.FloatField(null=True, blank=True)
-    course_mean_rating = models.FloatField(null=True, blank=True)
+    course_mean_rating = models.FloatField(null=True, blank=True, db_index=True)
     materials_mean_rating = models.FloatField(null=True, blank=True)
     assignments_mean_rating = models.FloatField(null=True, blank=True)
     feedback_mean_rating = models.FloatField(null=True, blank=True)
@@ -93,6 +93,11 @@ class Course(models.Model):
 
     modified_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['title', 'department', 'instructor']),
+            models.Index(fields=['course_mean_rating', 'responses']),
+        ]
 
 class CourseFeedbackQuestion(models.Model):
     course = models.ForeignKey(Course, related_name='course_feedback_questions', on_delete=models.CASCADE)
