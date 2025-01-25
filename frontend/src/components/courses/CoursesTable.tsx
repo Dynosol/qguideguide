@@ -14,7 +14,6 @@ import { getCoursesColumns } from './Columns'; // Import the columns
 import { fetchCourses } from '../../utils/api';
 import axios from 'axios'; // Import axios
 import config from '../../config';
-import AuthService from '../../utils/auth'; // Import AuthService
 
 const USER_KEYPRESS_SEARCHDELAY = 100; // in milliseconds
 interface CoursesTableProps {
@@ -55,13 +54,10 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
 
   // Load data with stale-while-revalidate pattern
   useEffect(() => {
-    const initializeAndFetchData = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        // Initialize auth before making API calls
-        await AuthService.getInstance().initialize();
         const cachedCourses = await db.courses.toArray();
-        const metadata = await db.metadata.get('etags');
         
         // If we have cached data, show it immediately
         if (cachedCourses.length > 0) {
@@ -69,39 +65,20 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
           setIsLoading(false);
         }
 
-        // Prepare headers for conditional request
-        const headers: Record<string, string> = {};
-        if (metadata?.coursesEtag) {
-          headers['If-None-Match'] = metadata.coursesEtag;
-        }
-
         // Fetch fresh data in the background
-        const response = await fetchCourses(headers);
+        const response = await fetchCourses();
         
-        // Only update if we got new data (not 304)
-        if (response.status !== 304) {
-          const courses = Array.isArray(response.data) ? response.data :
-                       (response.data.results ? response.data.results : []);
+        const courses = Array.isArray(response.data) ? response.data :
+                     (response.data.results ? response.data.results : []);
 
-          if (courses.length > 0) {
-            setData(courses);
-            
-            // Update IndexedDB
-            await db.transaction('rw', db.courses, async () => {
-              await db.courses.clear();
-              await db.courses.bulkAdd(courses);
-            });
-
-            // Store new ETag
-            await db.metadata.put({
-              key: 'etags',
-              value: {
-                ...metadata?.value,
-                coursesEtag: response.headers.etag,
-                lastUpdate: new Date().toISOString()
-              }
-            });
-          }
+        if (courses.length > 0) {
+          setData(courses);
+          
+          // Update IndexedDB
+          await db.transaction('rw', db.courses, async () => {
+            await db.courses.clear();
+            await db.courses.bulkAdd(courses);
+          });
         }
       } catch (error) {
         console.error('Error fetching or storing courses:', error);
@@ -118,7 +95,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
       }
     };
 
-    initializeAndFetchData();
+    fetchData();
   }, []);
 
   // Debounce search input

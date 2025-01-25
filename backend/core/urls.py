@@ -15,18 +15,16 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include, re_path
-from django.http import HttpResponse, JsonResponse
-from django.views.decorators.http import require_GET
+from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenRefreshView
-from authentication.views import GetAPIToken, CustomTokenRefreshView
 from courses.views import CourseViewSet
 from professors.views import ProfessorViewSet, DepartmentViewSet
 from django.views.generic import TemplateView
 from django.utils import timezone
+from django.http import JsonResponse
+from django.views.decorators.http import require_GET
 
-# Create API router
+
 api_router = DefaultRouter()
 api_router.register(r'courses', CourseViewSet, basename='course')
 api_router.register(r'professors', ProfessorViewSet, basename='professor')
@@ -92,10 +90,6 @@ urlpatterns = [
     
     # Health check endpoint
     path('healthz/', health_check, name='health_check'),
-
-    # JWT token URLs
-    path('api/token/', GetAPIToken.as_view(), name='token_obtain'),
-    path('api/token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
 
     # API endpoints
     path('api/', include(api_router.urls)),

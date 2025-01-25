@@ -8,7 +8,6 @@ from .serializers import CourseSerializer
 from rest_framework.pagination import LimitOffsetPagination
 from django.utils.http import http_date, quote_etag
 from core.cache_utils import cache
-from core.viewsets import ThrottledViewSet
 import hashlib
 import json
 
@@ -21,7 +20,8 @@ def generate_etag(data):
     """Generate an ETag from the data"""
     data_str = json.dumps(data, sort_keys=True)
     return hashlib.md5(data_str.encode()).hexdigest()
-class CourseViewSet(ThrottledViewSet):
+
+class CourseViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     pagination_class = CoursePagination
