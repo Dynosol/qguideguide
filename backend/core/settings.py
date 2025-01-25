@@ -241,7 +241,6 @@ CACHES = {
             "SOCKET_TIMEOUT": 5,
             "RETRY_ON_TIMEOUT": True,
             "IGNORE_EXCEPTIONS": True,  # Don't fail on Redis errors
-            "PARSER_CLASS": "redis.connection.HiredisParser",
         },
         "KEY_PREFIX": "qguideguide",  # Add prefix to avoid key collisions
     }
