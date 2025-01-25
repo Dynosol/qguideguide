@@ -6,7 +6,6 @@ services:
     buildCommand: |
       pip install -r requirements.txt
       python manage.py migrate  # Run migrations first
-      python manage.py process_departments  # Process departments to populate professor_count
       python scripts/warm_cache.py  # Then warm the cache
     startCommand: |
       python scripts/warm_cache.py  # Warm cache again on startup
