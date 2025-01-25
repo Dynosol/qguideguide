@@ -71,6 +71,20 @@ CORS_ALLOW_HEADERS = [
     'x-api-key',
 ]
 
+# Base middleware - same for both production and development
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # CORS first
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'core.middleware.JWTAuthMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
 # Add development settings when DEBUG is True
 if DEBUG:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'api.qguideguide.com', 'qguideguide.com', 'www.qguideguide.com', 'qguideguide.onrender.com']
@@ -78,22 +92,6 @@ if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOW_CREDENTIALS = True
     CORS_ORIGIN_ALLOW_ALL = True
-    
-    # Move CORS middleware to the top
-    MIDDLEWARE = [
-        'corsheaders.middleware.CorsMiddleware',
-        'django.middleware.common.CommonMiddleware',
-        'django.middleware.security.SecurityMiddleware',
-        'core.middleware.JWTAuthMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'django.middleware.clickjacking.XFrameOptionsMiddleware',
-        'csp.middleware.CSPMiddleware',
-        'django.middleware.cache.UpdateCacheMiddleware',
-        'django.middleware.cache.FetchFromCacheMiddleware',
-    ]
     
     # Additional CORS settings for development
     CORS_EXPOSE_HEADERS = ['ETag', 'Cache-Control', 'Last-Modified']
@@ -131,22 +129,6 @@ else:
     ]
     CORS_ALLOW_CREDENTIALS = True
     
-    # Production middleware configuration
-    MIDDLEWARE = [
-        'corsheaders.middleware.CorsMiddleware',
-        'django.middleware.common.CommonMiddleware',
-        'django.middleware.security.SecurityMiddleware',
-        'core.middleware.JWTAuthMiddleware',
-        'django.contrib.sessions.middleware.SessionMiddleware',
-        'django.middleware.csrf.CsrfViewMiddleware',
-        'django.contrib.auth.middleware.AuthenticationMiddleware',
-        'django.contrib.messages.middleware.MessageMiddleware',
-        'django.middleware.clickjacking.XFrameOptionsMiddleware',
-        'csp.middleware.CSPMiddleware',
-        'django.middleware.cache.UpdateCacheMiddleware',
-        'django.middleware.cache.FetchFromCacheMiddleware',
-    ]
-    
     # Security settings for production
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -169,6 +151,43 @@ else:
     CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "'unsafe-eval'")
     CSP_IMG_SRC = ("'self'", "data:", "https:")
     CSP_CONNECT_SRC = ("'self'", "https://api.qguideguide.com")
+
+# Cache settings with better error handling
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": config('REDIS_URL', default='redis://127.0.0.1:6379/0'),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {
+                "max_connections": 100,
+                "retry_on_timeout": True,
+                "socket_keepalive": True,
+            },
+            "SOCKET_CONNECT_TIMEOUT": 5,
+            "SOCKET_TIMEOUT": 5,
+            "RETRY_ON_TIMEOUT": True,
+            "MAX_CONNECTIONS": 100,
+            "IGNORE_EXCEPTIONS": True,  # Don't fail on Redis errors
+        },
+        "KEY_PREFIX": "qguideguide",
+    }
+}
+
+# Redis connection health check
+HEALTH_CHECK = {
+    'cache_backend': 'django.core.cache.backends.dummy.DummyCache',
+    'cache_timeout': 30,
+}
+
+# Don't cache CORS preflight requests
+CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 24  # 24 hours
+CACHE_MIDDLEWARE_KEY_PREFIX = 'qguideguide'
+CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
+
+# Use Redis for session backend with fallback
+SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"  # Falls back to DB if Redis fails
+SESSION_CACHE_ALIAS = "default"
 
 # Application definition
 
@@ -228,32 +247,6 @@ SIMPLE_JWT = {
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
 }
-
-# Cache settings
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": config('REDIS_URL', default='redis://127.0.0.1:6379/0'),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "CONNECTION_POOL_KWARGS": {"max_connections": 100},
-            "SOCKET_CONNECT_TIMEOUT": 5,
-            "SOCKET_TIMEOUT": 5,
-            "RETRY_ON_TIMEOUT": True,
-            "IGNORE_EXCEPTIONS": True,  # Don't fail on Redis errors
-        },
-        "KEY_PREFIX": "qguideguide",  # Add prefix to avoid key collisions
-    }
-}
-
-# Don't cache CORS preflight requests
-CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 24  # 24 hours
-CACHE_MIDDLEWARE_KEY_PREFIX = 'qguideguide'
-CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
-
-# Use Redis for session backend
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
 
 ROOT_URLCONF = 'core.urls'
 

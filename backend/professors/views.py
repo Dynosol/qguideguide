@@ -13,6 +13,8 @@ from core.viewsets import ThrottledViewSet
 import logging
 import hashlib
 import json
+from django.conf import settings
+import redis
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +37,10 @@ class ProfessorViewSet(ThrottledViewSet):
         try:
             # Get data from cache
             data = get_cached_data('professors_data')
-            if data is None:
-                # If cache completely fails, fall back to database
+            
+            # If we got an empty list and cache isn't warmed, force database fallback
+            if not data and not redis.Redis(host='localhost', port=6379, db=0).get('cache_warmed'):
+                logger.warning("Got empty data from cache, falling back to database")
                 queryset = self.get_queryset()
                 serializer = self.get_serializer(queryset, many=True)
                 data = serializer.data
@@ -46,14 +50,21 @@ class ProfessorViewSet(ThrottledViewSet):
             
             # Check if client's ETag matches
             if request.META.get('HTTP_IF_NONE_MATCH') == etag:
-                return Response(status=304)
-
-            # Handle pagination
-            page = self.paginate_queryset(data)
-            if page is not None:
-                response = self.get_paginated_response(page)
+                response = Response(status=304)
             else:
-                response = Response(data)
+                # Handle pagination
+                page = self.paginate_queryset(data)
+                if page is not None:
+                    response = self.get_paginated_response(page)
+                else:
+                    response = Response(data)
+
+            # Always set CORS headers
+            origin = request.headers.get('Origin')
+            if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
+                response['Access-Control-Allow-Origin'] = origin
+                response['Access-Control-Allow-Credentials'] = 'true'
+                response['Access-Control-Expose-Headers'] = 'last-modified, etag'
 
             # Set cache headers
             response['ETag'] = etag
@@ -63,12 +74,19 @@ class ProfessorViewSet(ThrottledViewSet):
                 response['Last-Modified'] = http_date(datetime.timestamp(latest_update))
             
             return response
+
         except Exception as e:
-            logger.error(f"Error in ProfessorViewSet.list: {str(e)}")
-            return Response(
-                {"error": "An error occurred while fetching professors"},
+            logger.error(f"Error in list view: {str(e)}")
+            response = Response(
+                {'error': 'Internal server error'},
                 status=500
             )
+            # Set CORS headers even for error responses
+            origin = request.headers.get('Origin')
+            if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
+                response['Access-Control-Allow-Origin'] = origin
+                response['Access-Control-Allow-Credentials'] = 'true'
+            return response
 
     def head(self, request, *args, **kwargs):
         try:
@@ -93,8 +111,10 @@ class DepartmentViewSet(ThrottledViewSet):
         try:
             # Get data from cache
             data = get_cached_data('departments_data')
-            if data is None:
-                # If cache completely fails, fall back to database
+            
+            # If we got an empty list and cache isn't warmed, force database fallback
+            if not data and not redis.Redis(host='localhost', port=6379, db=0).get('cache_warmed'):
+                logger.warning("Got empty data from cache, falling back to database")
                 queryset = self.get_queryset()
                 serializer = self.get_serializer(queryset, many=True)
                 data = serializer.data
@@ -104,14 +124,21 @@ class DepartmentViewSet(ThrottledViewSet):
             
             # Check if client's ETag matches
             if request.META.get('HTTP_IF_NONE_MATCH') == etag:
-                return Response(status=304)
-
-            # Handle pagination
-            page = self.paginate_queryset(data)
-            if page is not None:
-                response = self.get_paginated_response(page)
+                response = Response(status=304)
             else:
-                response = Response(data)
+                # Handle pagination
+                page = self.paginate_queryset(data)
+                if page is not None:
+                    response = self.get_paginated_response(page)
+                else:
+                    response = Response(data)
+
+            # Always set CORS headers
+            origin = request.headers.get('Origin')
+            if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
+                response['Access-Control-Allow-Origin'] = origin
+                response['Access-Control-Allow-Credentials'] = 'true'
+                response['Access-Control-Expose-Headers'] = 'last-modified, etag'
 
             # Set cache headers
             response['ETag'] = etag
@@ -121,12 +148,19 @@ class DepartmentViewSet(ThrottledViewSet):
                 response['Last-Modified'] = http_date(datetime.timestamp(latest_update))
             
             return response
+
         except Exception as e:
-            logger.error(f"Error in DepartmentViewSet.list: {str(e)}")
-            return Response(
-                {"error": "An error occurred while fetching departments"},
+            logger.error(f"Error in list view: {str(e)}")
+            response = Response(
+                {'error': 'Internal server error'},
                 status=500
             )
+            # Set CORS headers even for error responses
+            origin = request.headers.get('Origin')
+            if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
+                response['Access-Control-Allow-Origin'] = origin
+                response['Access-Control-Allow-Credentials'] = 'true'
+            return response
 
     def head(self, request, *args, **kwargs):
         try:
