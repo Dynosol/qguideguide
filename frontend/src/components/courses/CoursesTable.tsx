@@ -14,6 +14,7 @@ import { getCoursesColumns } from './Columns'; // Import the columns
 import { fetchCourses } from '../../utils/api';
 import axios from 'axios'; // Import axios
 import config from '../../config';
+import AuthService from '../../utils/auth'; // Import AuthService
 
 const USER_KEYPRESS_SEARCHDELAY = 100; // in milliseconds
 interface CoursesTableProps {
@@ -54,11 +55,11 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
 
   // Load data with stale-while-revalidate pattern
   useEffect(() => {
-    const fetchData = async () => {
+    const initializeAndFetchData = async () => {
       try {
         setIsLoading(true);
-
-        // First try to get data from IndexedDB
+        // Initialize auth before making API calls
+        await AuthService.getInstance().initialize();
         const cachedCourses = await db.courses.toArray();
         const metadata = await db.metadata.get('etags');
         
@@ -117,7 +118,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
       }
     };
 
-    fetchData();
+    initializeAndFetchData();
   }, []);
 
   // Debounce search input
