@@ -113,3 +113,7 @@ frontend/.env.development
 frontend/.env.production
 backend/.env.neon
 backend/.env.dev
+
+# Large files (exceeding GitHub's 100MB limit)
+backend/fixtures.json
+backend/qguideguide_backup_sqlite.sql
