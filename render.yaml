@@ -9,7 +9,7 @@ services:
       python scripts/warm_cache.py  # Then warm the cache
     startCommand: |
       python scripts/warm_cache.py  # Warm cache again on startup
-      gunicorn core.wsgi:application
+      gunicorn -c gunicorn.conf.py core.wsgi:application
     rootDir: backend
     envVars:
       - key: PYTHON_VERSION
