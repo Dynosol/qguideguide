@@ -240,19 +240,21 @@ CACHES = {
             "SOCKET_CONNECT_TIMEOUT": 5,
             "SOCKET_TIMEOUT": 5,
             "RETRY_ON_TIMEOUT": True,
-        }
+            "IGNORE_EXCEPTIONS": True,  # Don't fail on Redis errors
+            "PARSER_CLASS": "redis.connection.HiredisParser",
+        },
+        "KEY_PREFIX": "qguideguide",  # Add prefix to avoid key collisions
     }
 }
+
+# Don't cache CORS preflight requests
+CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 24  # 24 hours
+CACHE_MIDDLEWARE_KEY_PREFIX = 'qguideguide'
+CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
+
 # Use Redis for session backend
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
-
-# Disable browsable API in production
-if not DEBUG:
-    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
-        'rest_framework.renderers.JSONRenderer',
-        'rest_framework_datatables.renderers.DatatablesRenderer',
-    ]
 
 ROOT_URLCONF = 'core.urls'
 
@@ -324,41 +326,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Content Security Policy
-CSP_DEFAULT_SRC = ("'self'",)
-CSP_SCRIPT_SRC = (
-    "'self'",
-    "'unsafe-inline'",
-    "'unsafe-eval'",
-    "https://cdnjs.cloudflare.com",
-)
-CSP_STYLE_SRC = (
-    "'self'",
-    "'unsafe-inline'",
-    "https://cdnjs.cloudflare.com",
-)
-CSP_STYLE_SRC_ELEM = (
-    "'self'",
-    "'unsafe-inline'",
-    "https://cdnjs.cloudflare.com",
-)
-CSP_IMG_SRC = ("'self'", "data:", "https:")
-CSP_FONT_SRC = (
-    "'self'",
-    "data:",
-    "https://cdnjs.cloudflare.com",
-    "https://fonts.gstatic.com",
-    "https://fonts.googleapis.com",
-)
-CSP_CONNECT_SRC = ("'self'",)
-CSP_FRAME_SRC = ("'none'",)
-CSP_OBJECT_SRC = ("'none'",)
-CSP_BASE_URI = ("'self'",)
-CSP_FRAME_ANCESTORS = ("'none'",)
-CSP_FORM_ACTION = ("'self'",)
-CSP_INCLUDE_NONCE_IN = ['script-src']
-
-# Logging Configuration
+# Logging configuration
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -367,54 +335,25 @@ LOGGING = {
             'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
             'style': '{',
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
-        },
     },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': 'logs/django.log',
-            'maxBytes': 1024 * 1024 * 5,  # 5 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file'] if not DEBUG else ['console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'core': {
-            'handlers': ['console', 'file'] if not DEBUG else ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'professors': {
-            'handlers': ['console', 'file'] if not DEBUG else ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'courses': {
-            'handlers': ['console', 'file'] if not DEBUG else ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'django.db.backends': {
             'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
+            'level': 'INFO',
+        },
+        'django.cache': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
         },
         'django_redis': {
-            'handlers': ['console', 'file'] if not DEBUG else ['console'],
+            'handlers': ['console'],
             'level': 'DEBUG',
-            'propagate': True,
         },
     },
 }

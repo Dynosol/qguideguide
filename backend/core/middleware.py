@@ -31,21 +31,41 @@ class JWTAuthMiddleware:
         if request.method == 'OPTIONS':
             response = self.get_response(request)
             origin = request.headers.get('Origin')
-            if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
-                response['Access-Control-Allow-Origin'] = origin
-                response['Access-Control-Allow-Credentials'] = 'true'
-                response['Access-Control-Allow-Headers'] = 'Authorization, Content-Type'
-                response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, HEAD, OPTIONS'
-                response['Access-Control-Expose-Headers'] = 'last-modified'
+            
+            # Always set CORS headers for OPTIONS requests, regardless of origin
+            # This ensures cached responses also have proper CORS headers
+            if origin:
+                allowed_origins = getattr(settings, 'CORS_ALLOWED_ORIGINS', [])
+                if settings.DEBUG or origin in allowed_origins:
+                    response['Access-Control-Allow-Origin'] = origin
+                    response['Access-Control-Allow-Credentials'] = 'true'
+                    response['Access-Control-Allow-Headers'] = 'Authorization, Content-Type, Accept, X-API-Key'
+                    response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, HEAD, OPTIONS'
+                    response['Access-Control-Max-Age'] = '3600'  # Cache preflight for 1 hour
+                    response['Access-Control-Expose-Headers'] = 'last-modified'
+                    
+                    # Ensure the response is not cached by Redis
+                    response['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+                    response['Pragma'] = 'no-cache'
+                    response['Expires'] = '0'
+            
             return response
+
+        # For non-OPTIONS requests, ensure CORS headers are set
+        response = self.get_response(request)
+        origin = request.headers.get('Origin')
+        if origin and (settings.DEBUG or origin in getattr(settings, 'CORS_ALLOWED_ORIGINS', [])):
+            response['Access-Control-Allow-Origin'] = origin
+            response['Access-Control-Allow-Credentials'] = 'true'
+            response['Access-Control-Expose-Headers'] = 'last-modified'
 
         # Skip JWT check for development if DEBUG is True
         if settings.DEBUG:
-            return self.get_response(request)
+            return response
 
         # Skip JWT check for non-API routes and token endpoints
         if not request.path.startswith('/api/') or request.path in ['/api/token/', '/api/token/refresh/']:
-            return self.get_response(request)
+            return response
 
         try:
             # Get the Authorization header
@@ -64,7 +84,7 @@ class JWTAuthMiddleware:
             # Add the validated token to the request for use in views
             request.validated_token = validated_token
             
-            return self.get_response(request)
+            return response
 
         except (InvalidToken, TokenError) as e:
             return JsonResponse(
