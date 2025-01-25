@@ -197,10 +197,6 @@ CACHE_MIDDLEWARE_SECONDS = 60 * 60 * 24  # 24 hours
 CACHE_MIDDLEWARE_KEY_PREFIX = 'qguideguide'
 CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 
-# Use Redis for session backend with fallback
-SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"  # Falls back to DB if Redis fails
-SESSION_CACHE_ALIAS = "default"
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -210,12 +206,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'corsheaders',
+    'rest_framework',
+    'core.apps.CoreConfig',  # Add this line to register our app config
+    'professors',
     'courses',
     'rest_framework_datatables',
-    'core.apps.CoreConfig',
-    'professors',
     'csp',
     'health_check',
     'health_check.db',

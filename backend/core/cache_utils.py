@@ -12,6 +12,7 @@ from django.db import transaction
 from redis.exceptions import ConnectionError, TimeoutError
 from functools import wraps
 import backoff
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -144,3 +145,23 @@ def get_cached_data(key):
     except Exception as e:
         logger.error(f"Error getting cached data for {key}: {str(e)}")
         return []
+
+class CoreConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'core'
+
+    def ready(self):
+        """
+        Called when Django starts. This is where we'll warm up our cache.
+        """
+        # Avoid running this in manage.py migrate
+        if os.environ.get('RUN_MAIN', None) != 'true':
+            try:
+                # Run cache warming in a separate thread to not block server startup
+                from threading import Thread
+                thread = Thread(target=warm_cache)
+                thread.daemon = True
+                thread.start()
+                logger.info("Started cache warming thread")
+            except Exception as e:
+                logger.error(f"Failed to start cache warming thread: {str(e)}")
