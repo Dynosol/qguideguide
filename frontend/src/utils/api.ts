@@ -19,14 +19,6 @@ api.interceptors.request.use(async request => {
   if (token) {
     request.headers['Authorization'] = `Bearer ${token}`;
   }
-  
-  // Log request for debugging
-  console.log('API Request:', {
-    url: request.url,
-    method: request.method,
-    headers: request.headers,
-    baseURL: request.baseURL
-  });
   return request;
 });
 

@@ -15,7 +15,7 @@ import logging
 from professors.models import Professor, Department
 from professors.serializers import ProfessorSerializer, DepartmentSerializer
 from courses.models import Course
-from courses.serializers import CourseSerializer, CourseListSerializer
+from courses.serializers import CourseSerializer
 
 # Cache for 24 hours
 CACHE_TIMEOUT = 60 * 60 * 24
@@ -41,14 +41,13 @@ def warm_cache():
 
         # Cache courses data (both full and list views)
         courses = Course.objects.all().order_by('title')
-        courses_full_data = CourseSerializer(courses, many=True).data
-        courses_list_data = CourseListSerializer(courses, many=True).data
+        courses_data = CourseSerializer(courses, many=True).data
         
-        cache.set('courses_data', courses_full_data, CACHE_TIMEOUT)
-        cache.set('courses_list_data', courses_list_data, CACHE_TIMEOUT)
+        cache.set('courses_data', courses_data, CACHE_TIMEOUT)
+        logger.info(f"Cached {len(courses_data)} courses (full data)")
         
-        logger.info(f"Cached {len(courses_full_data)} courses (full data)")
-        logger.info(f"Cached {len(courses_list_data)} courses (list data)")
+        logger.info(f"Cached {len(courses_data)} courses (full data)")
+        logger.info(f"Cached {len(courses_data)} courses (list data)")
 
         logger.info("Deployment cache warming completed successfully")
         return True

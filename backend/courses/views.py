@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework_datatables import filters as dt_filters
 from .models import Course
-from .serializers import CourseSerializer, CourseListSerializer
+from .serializers import CourseSerializer
 from rest_framework.pagination import LimitOffsetPagination
 from django.utils.http import http_date
 from datetime import datetime
@@ -15,33 +15,15 @@ import time
 
 REQUEST_LIMIT = None
 
-# def courses_list(request):
-#     courses = Course.objects.all()
-#     return render(request, 'courses.html', {'courses': courses})
-
 class CoursePagination(LimitOffsetPagination):
     default_limit = REQUEST_LIMIT
 
 logger = logging.getLogger(__name__)
 
 class CourseViewSet(ThrottledViewSet):
+    queryset = Course.objects.all()
     serializer_class = CourseSerializer
     pagination_class = CoursePagination
-
-    def get_queryset(self):
-        """Return an optimized queryset"""
-        if self.action == 'list':
-            return Course.objects.only(
-                'id', 'title', 'department', 'instructor', 'term',
-                'course_mean_rating', 'responses'
-            ).order_by('title')
-        return Course.objects.all()
-
-    def get_serializer_class(self):
-        """Return different serializers for list and detail"""
-        if self.action == 'list':
-            return CourseListSerializer
-        return CourseSerializer
 
     def list(self, request, *args, **kwargs):
         start_time = time.time()
@@ -51,14 +33,13 @@ class CourseViewSet(ThrottledViewSet):
 
         try:
             from django.db import connection, reset_queries
-            import json
             
             # Enable query logging
             reset_queries()
             
             # Try to get data from cache
             cache_start = time.time()
-            data = get_cached_data('courses_list_data')
+            data = get_cached_data('courses_data')
             cache_time = (time.time() - cache_start) * 1000
 
             if data is None:
@@ -72,7 +53,7 @@ class CourseViewSet(ThrottledViewSet):
                 # Log query information
                 query_count = len(connection.queries)
                 queries = connection.queries
-                logger.warning(f"Cache miss for courses_list_data. Executed {query_count} queries:")
+                logger.warning(f"Cache miss for courses_data. Executed {query_count} queries:")
                 for query in queries:
                     logger.warning(f"Query: {query['sql'][:500]}...")
                     logger.warning(f"Time: {query['time']}")
@@ -138,7 +119,7 @@ class CourseViewSet(ThrottledViewSet):
 
             # Get cache stats
             cache_keys = {
-                'courses_list_data': cache.get('courses_list_data') is not None,
+                'courses_data': cache.get('courses_data') is not None,
                 'courses_data': cache.get('courses_data') is not None,
                 'professors_data': cache.get('professors_data') is not None,
                 'departments_data': cache.get('departments_data') is not None,

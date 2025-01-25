@@ -2,7 +2,7 @@ from django.core.cache import cache
 from professors.models import Professor
 from professors.serializers import ProfessorSerializer
 from courses.models import Course
-from courses.serializers import CourseSerializer, CourseListSerializer
+from courses.serializers import CourseSerializer
 from professors.models import Department
 from professors.serializers import DepartmentSerializer
 import logging
@@ -30,14 +30,11 @@ def warm_cache():
 
         # Cache courses data (both full and list views)
         courses = Course.objects.all().order_by('title')
-        courses_full_data = CourseSerializer(courses, many=True).data
-        courses_list_data = CourseListSerializer(courses, many=True).data
+        courses_data = CourseSerializer(courses, many=True).data
         
-        cache.set('courses_data', courses_full_data, CACHE_TIMEOUT)
-        cache.set('courses_list_data', courses_list_data, CACHE_TIMEOUT)
+        cache.set('courses_data', courses_data, CACHE_TIMEOUT)
         
-        logger.info(f"Cached {len(courses_full_data)} courses (full data)")
-        logger.info(f"Cached {len(courses_list_data)} courses (list data)")
+        logger.info(f"Cached {len(courses_data)} courses (full data)")
 
         logger.info("Cache warming completed successfully")
     except Exception as e:
@@ -51,11 +48,7 @@ def get_cached_data(key):
         if data is None:
             logger.warning(f"Cache miss for key: {key}")
             # Don't warm the entire cache, just get the specific data needed
-            if key == 'courses_list_data':
-                courses = Course.objects.all().order_by('title')
-                data = CourseListSerializer(courses, many=True).data
-                cache.set(key, data, CACHE_TIMEOUT)
-            elif key == 'courses_data':
+            if key == 'courses_data':
                 courses = Course.objects.all().order_by('title')
                 data = CourseSerializer(courses, many=True).data
                 cache.set(key, data, CACHE_TIMEOUT)

@@ -6,6 +6,7 @@ from django.db.models import Avg
 
 class Department(models.Model):
     name = models.CharField(max_length=100, unique=True)
+    professor_count = models.IntegerField(null=True, blank=True)
     empirical_bayes_average = models.FloatField(null=True, blank=True)
     empirical_bayes_rank = models.FloatField(null=True, blank=True)
 

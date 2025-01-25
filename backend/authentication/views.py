@@ -41,3 +41,12 @@ class GetAPIToken(APIView):
 
 class CustomTokenRefreshView(TokenRefreshView):
     throttle_classes = [TokenRateThrottle]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        except User.DoesNotExist:
+            return Response(
+                {'error': 'Token is invalid or expired. Please obtain a new token.'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
