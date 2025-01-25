@@ -7,22 +7,6 @@
   top: 0;
   left: 0;
 }
-
-.guide {
-  margin-top: 4vh;
-  height: 4vh;
-  background-color: var(--greyish);
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 0 2vw;
-  color: var(--text-color-light);
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  white-space: nowrap;
-}
-
 body.dark-mode .guide {
   background-color: var(--dark-greyish);
   color: var(--text-color-dark);

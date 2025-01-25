@@ -1,3 +1,4 @@
+/* =================== NAVBAR AND GENERAL STYLES =================== */
 nav,
 .nav-container,
 .nav-links,
@@ -10,20 +11,20 @@ nav,
   /* Higher than the pseudo-elements */
 }
 
-
 .toggle-modes {
   color: var(--nav-text-color-light);
 }
+
 body.dark-mode .toggle-modes {
   color: var(--harvard);
 }
 
-/* yes, gpt was used to adjust positioning of things...*/
-
+/* Logo Link Styles */
 .logo-link {
   text-decoration: none;
   color: var(--nav-text-color-light);
 }
+
 body.dark-mode .logo-link {
   color: var(--text-color-dark);
 }
@@ -33,18 +34,17 @@ nav {
   padding: 0;
   margin: 0;
   position: fixed;
-  /* Box-shadow scaled from 0.4vh/0.8vh down to ~0.23vh/0.46vh */
   width: 100%;
-  height: 4vh; /* Changed from 7vh to 4vh */
+  height: 4vh;
+  /* Navbar height */
   top: 0;
   z-index: 1000;
   background-color: var(--harvard);
-  /* background: linear-gradient(to right, var(--harvard) 40%, var(--harvard-lighter)); */
   border-bottom: 1px solid black;
 }
+
 body.dark-mode nav {
   background: var(--navbar-bg-dark);
-  /* background: linear-gradient(to right, var(--navbar-bg-dark) 10%, var(--navbar-bg-dark-lighter)); */
 }
 
 nav::before,
@@ -79,39 +79,45 @@ nav:hover::before,
 nav:hover::after {
   opacity: 1;
 }
+
 /* =================== GLOW EFFECT ==================================== */
 
-
-
+/* =================== NAV CONTAINER =================== */
 .nav-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
   max-width: 100vw;
   margin: 0;
-  padding: 1vw;
-  max-height: 4vh;
+  padding: 0 1vw;
+  /* Removed vertical padding to keep elements centered vertically */
+  height: 100%;
+  /* Matches the 4vh height of the navbar */
 }
 
+/* Logo Styles */
 .logo {
-  /* Scaled from 3vh down to ~1.7vh (tweak to taste) */
   font-size: 2vh;
+  /* Scaled font size */
   padding-left: 1vw;
 }
 
+/* Navigation Links */
 .nav-links {
   list-style-type: none;
   padding: 0;
   margin: 0;
   display: flex;
-  /* Gap scaled from 4vh down to ~2.3vh */
   gap: 2.3vh;
+  /* Scaled gap */
   font-size: 2vh;
+  /* Scaled font size */
 }
 
 .navbar-link.active {
   color: var(--selected-navoption);
 }
+
 body.dark-mode .navbar-link.active {
   color: var(--harvard);
 }
@@ -120,14 +126,16 @@ body.dark-mode .navbar-link.active {
   margin: 0;
 }
 
-/* Padding scaled from 1vh/2vh down to ~0.6vh/1.1vh
-   Border-radius scaled from 0.8vh down to ~0.45vh */
 .nav-links li a {
   color: var(--nav-text-color-light);
   text-decoration: none;
-  /* padding: 1vh; */
   transition: background-color 0.2s;
+  padding: 0.6vh 1.1vh;
+  /* Scaled padding */
+  border-radius: 0.45vh;
+  /* Scaled border-radius */
 }
+
 body.dark-mode .nav-links li a {
   color: var(--text-color-dark);
 }
@@ -135,16 +143,75 @@ body.dark-mode .nav-links li a {
 .nav-links li a:hover {
   background-color: var(--link-hover-bg-light);
 }
+
 body.dark-mode .nav-links li a:hover {
   background-color: var(--link-hover-bg-dark);
 }
 
+/* =================== NAV CONTAINER =================== */
 
+/* =================== HAMBURGER MENU =================== */
+/* CSS Variables for Hamburger Size */
+:root {
+  --hamburger-height: 2.5vh;
+  /* Adjust as needed */
+  --hamburger-width: 3.3vh;
+  /* Maintain aspect ratio based on navbar height */
+  --hamburger-bar-height: 0.3vh;
+  --hamburger-gap: 0.5vh;
+}
 
+.menu-toggle {
+  position: relative;
+  /* For demonstration, set a size you prefer; you can keep your existing sizing logic */
+  width: var(--hamburger-width);
+  height: var(--hamburger-height);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 999;
+  /* Keep on top if needed */
+}
 
-/* hamburgerr */
+/* Each bar (span) is absolutely positioned within the .menu-toggle */
+.menu-toggle span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: var(--hamburger-bar-height);
+  /* thickness of the bar */
+  background-color: var(--nav-text-color-light);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform-origin: center;
+  /* You can use left center or center */
+}
+
+/* Dark mode override */
+body.dark-mode .menu-toggle span {
+  background-color: var(--text-color-dark);
+}
+
+/* Position each bar (top, middle, bottom) */
+.menu-toggle span:nth-child(1) {
+  top: 0;
+}
+
+.menu-toggle span:nth-child(2) {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.menu-toggle span:nth-child(3) {
+  bottom: 0;
+}
+
+/* When .open is added, we transform them to form an X and hide the middle bar */
 .menu-toggle.open span:nth-child(1) {
-  transform: rotate(45deg) translate(2px, 0px);
+  top: 50%;
+  transform: translateY(-50%) rotate(45deg);
 }
 
 .menu-toggle.open span:nth-child(2) {
@@ -152,82 +219,71 @@ body.dark-mode .nav-links li a:hover {
 }
 
 .menu-toggle.open span:nth-child(3) {
-  transform: rotate(-45deg) translate(-5px, 0px);
+  bottom: 50%;
+  transform: translateY(50%) rotate(-45deg);
 }
 
-.menu-toggle input:checked~span {
-  opacity: 1;
-  transform: rotate(45deg) translate(-7px, -1px);
-  background: #fff;
-}
+/* =================== HAMBURGER MENU =================== */
 
-.menu-toggle input:checked~span:nth-last-child(2) {
-  transform: rotate(-45deg) translate(0, -1px);
-}
-
-.menu-toggle input:checked~span:nth-last-child(3) {
-  opacity: 0;
-  transform: scale(0.2, 0.2);
-}
-
-.menu-toggle {
-  display: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #333;
-  transition: transform 0.3s ease;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-/* Hamburger into X */
-.menu-toggle span {
-  display: block;
-  width: 33px;
-  /* This can stay as px, or change if you want it to scale with vh */
-  height: 3px;
-  margin-bottom: 5px;
-  background: var(--nav-text-color-light);
-  border-radius: 3px;
-  z-index: 1;
-  transform-origin: 4px -2px;
-  transition: transform 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0),
-    background 0.5s cubic-bezier(0.77, 0.2, 0.05, 1.0),
-    opacity 0.55s ease;
-}
-body.dark-mode .menu-toggle span {
-  background: var(--text-color-dark);
-}
-
-/* Mobile Styles */
+/* =================== MOBILE STYLES =================== */
 @media (max-width: 850px) {
+
+  /* Show hamburger menu */
   .menu-toggle {
+    display: flex;
+    /* Use flex for alignment */
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Ensure spans are visible */
+  .menu-toggle span {
     display: block;
   }
 
+  /* Navigation Links (Menu) */
   .nav-links {
-    display: flex;
-    flex-direction: column;
-    /* Gap scaled from 2vh to ~1.15vh (optional) */
-    gap: 1.15vh;
-    position: absolute;
-    /* Top should match new nav height */
+    position: fixed;
+    /* Fix the menu to the viewport */
     top: 4vh;
+    /* Align with the navbar height */
+    right: 0;
+    /* Start from the right */
+    height: calc(100% - 4vh);
+    /* Full height minus navbar */
+    width: 250px;
+    /* Set desired width */
     background-color: var(--harvard);
-    /* Scaled padding from 2vh down to ~1.15vh */
+    flex-direction: column;
+    gap: 1.15vh;
     padding: 1.15vh;
-    /* Same scaled box-shadow as above */
     box-shadow: 0 0.23vh 0.46vh rgba(0, 0, 0, 0.1);
-    right: -100%;
-    transition: right 0.5s ease;
+    transform: translateX(100%);
+    /* Hide off-screen to the right */
+    transition: transform 0.5s ease;
+    /* Smooth sliding animation */
     color: var(--nav-text-color-light);
+    z-index: 999;
+    /* Ensure it appears above other elements */
+    overflow-y: auto;
+    /* Enable scrolling if content overflows */
   }
+
   body.dark-mode .nav-links {
     background-color: var(--navbar-bg-dark);
   }
 
+  /* When nav-links are open */
   .nav-links.open {
-    right: 0vh;
+    transform: translateX(0);
+    /* Slide in */
+  }
+
+  /* Optional: Adjust nav-links font size on mobile */
+  .nav-links {
+    font-size: 2vh;
   }
 }
+
+/* =================== MOBILE STYLES =================== */

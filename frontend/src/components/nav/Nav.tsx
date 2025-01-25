@@ -7,18 +7,28 @@ import Switch, { SwitchProps } from '@mui/material/Switch';
 import { useThemeContext } from '../../utils/themeHelper'; // <--- import context
 import { colorPalettes } from '../../utils/colors';
 
+/**
+ * We set the switch dimensions using vh units so it scales with the navbar (4vh tall).
+ * The original pixel-based ratio was ~42px wide x 26px high => 1.615:1. 
+ * This snippet keeps that ratio while shrinking or expanding if the navbar height changes.
+ */
 const IOSSwitch = styled((props: SwitchProps) => (
   <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
 ))(({ theme }) => ({
-  width: 42,
-  height: 26,
+  // Switch overall dimensions (scaled to fit inside a 4vh navbar).
+  // Feel free to adjust these as desired for your layout.
+  width: '4.2vh',   // (26px->2.6vh) * (42/26) ~ 4.2vh
+  height: '2.6vh',  // scaled from the original 26px height
   padding: 0,
   '& .MuiSwitch-switchBase': {
     padding: 0,
-    margin: 2,
+    // The original had margin: 2px => ~ 2/26 => 0.0769 => ~0.2vh
+    margin: '0.2vh',
     transitionDuration: '300ms',
     '&.Mui-checked': {
-      transform: 'translateX(16px)',
+      // The original transform was 16px, which is 42 - 26 = 16 => ~1.6vh 
+      // (4.2vh - 2.6vh = 1.6vh).
+      transform: 'translateX(1.6vh)',
       color: '#fff',
       '& + .MuiSwitch-track': {
         backgroundColor: colorPalettes.light.harvard,
@@ -41,12 +51,14 @@ const IOSSwitch = styled((props: SwitchProps) => (
     },
   },
   '& .MuiSwitch-thumb': {
+    // The thumb was originally 22px, close to 85% of the 26px height => 2.2vh
     boxSizing: 'border-box',
-    width: 22,
-    height: 22,
+    width: '2.2vh',
+    height: '2.2vh',
   },
   '& .MuiSwitch-track': {
-    borderRadius: 13,
+    // The track radius was half its height => 13px (for 26px). Now it's half of 2.6vh => 1.3vh
+    borderRadius: '1.3vh',
     backgroundColor: '#E9E9EA',
     opacity: 1,
     transition: theme.transitions.create(['background-color'], {
@@ -58,13 +70,12 @@ const IOSSwitch = styled((props: SwitchProps) => (
 const Navbar: React.FC = () => {
   const { mode, toggleMode } = useThemeContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navRef = useRef<HTMLElement>(null); // Add this line
+  const navRef = useRef<HTMLElement>(null);
 
   const isDarkMode = mode === 'dark';
 
   useEffect(() => {
     const root = window.document.documentElement;
-    // apply body class for dark mode (two things here because I'm just adding things onto the project with no planning really involved at all)
     if (isDarkMode) {
       document.body.classList.add('dark-mode');
       root.classList.add('dark');
@@ -82,7 +93,7 @@ const Navbar: React.FC = () => {
     setIsMenuOpen((prev) => !prev);
   };
 
-  // Mouse move handler
+  // Mouse move handler (for glow effect)
   const handleMouseMove = (e: React.MouseEvent) => {
     if (navRef.current) {
       const rect = navRef.current.getBoundingClientRect();
@@ -133,7 +144,7 @@ const Navbar: React.FC = () => {
               className={({ isActive }) =>
                 isActive ? 'navbar-link active' : 'navbar-link'
               }
-              onClick={() => setIsMenuOpen(false)} // Close menu on link click
+              onClick={() => setIsMenuOpen(false)}
             >
               Course Search Tool
             </NavLink>
