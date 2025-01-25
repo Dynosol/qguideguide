@@ -26,53 +26,31 @@ api.interceptors.request.use(async request => {
     request.headers['x-api-key'] = config.apiKey;
   }
 
+  // Add CORS headers
+  request.headers['Origin'] = window.location.origin;
+  
   return request;
 });
 
-// Add response interceptor for error handling and token refresh
+// Add response interceptor to handle errors
 api.interceptors.response.use(
   response => response,
-  async error => {
-    const originalRequest = error.config;
-
-    // If error is 401 and we haven't tried refreshing token yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        const auth = AuthService.getInstance();
-        const newToken = await auth.handleTokenRefresh();
-        
-        // Update the failed request with new token and retry
-        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
-        return axios(originalRequest);
-      } catch (refreshError) {
-        console.error('Token refresh failed:', refreshError);
-        return Promise.reject(refreshError);
-      }
-    }
-
-    // Log CORS and other errors
+  error => {
     if (error.response) {
+      // Server responded with error status
       console.error('API Error:', {
-        url: error.config?.url,
-        method: error.config?.method,
         status: error.response.status,
-        statusText: error.response.statusText,
-        headers: {
-          request: error.config?.headers,
-          response: error.response.headers
-        },
-        data: error.response.data
+        data: error.response.data,
+        headers: error.response.headers,
       });
     } else if (error.request) {
+      // Request made but no response
       console.error('Network Error:', {
-        url: error.config?.url,
-        method: error.config?.method,
-        error: error.message
+        url: error.config.url,
+        method: error.config.method,
+        error: error.message,
       });
     }
-
     return Promise.reject(error);
   }
 );

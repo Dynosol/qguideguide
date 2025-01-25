@@ -43,21 +43,22 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOWED_ORIGINS = [
     'https://qguideguide.com',
     'https://www.qguideguide.com',
+    'https://api.qguideguide.com',
     'http://localhost:5173',
+    'https://qguideguide.onrender.com',
 ]
 
 # CORS settings that apply to both production and development
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_METHODS = [
-    'DELETE',
-    'GET',
-    'HEAD',
-    'OPTIONS',
-    'PATCH',
-    'POST',
-    'PUT',
+CORS_EXPOSE_HEADERS = [
+    'content-type',
+    'x-api-key',
+    'authorization',
+    'accept',
+    'etag',
+    'cache-control',
+    'last-modified',
 ]
-
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -69,6 +70,18 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
     'x-api-key',
+    'cache-control',
+    'if-match',
+    'if-none-match',
+    'if-modified-since',
+]
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
 ]
 
 # Base middleware - same for both production and development
@@ -89,27 +102,27 @@ MIDDLEWARE = [
 if DEBUG:
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'api.qguideguide.com', 'qguideguide.com', 'www.qguideguide.com', 'qguideguide.onrender.com']
     # In development, allow all origins for easier testing
-    CORS_ALLOW_ALL_ORIGINS = True
+    # CORS_ORIGIN_ALLOW_ALL = True  # Removed
     CORS_ALLOW_CREDENTIALS = True
-    CORS_ORIGIN_ALLOW_ALL = True
+    # CORS_ORIGIN_ALLOW_ALL = True  # Removed
     
     # Additional CORS settings for development
-    CORS_EXPOSE_HEADERS = ['ETag', 'Cache-Control', 'Last-Modified']
-    CORS_ALLOW_HEADERS = [
-        'accept',
-        'accept-encoding',
-        'authorization',
-        'content-type',
-        'dnt',
-        'origin',
-        'user-agent',
-        'x-csrftoken',
-        'x-requested-with',
-        'x-api-key',
-        'if-none-match',
-        'if-modified-since',
-        'cache-control'
-    ]
+    # CORS_EXPOSE_HEADERS = ['ETag', 'Cache-Control', 'Last-Modified']  # Updated
+    # CORS_ALLOW_HEADERS = [  # Updated
+    #     'accept',
+    #     'accept-encoding',
+    #     'authorization',
+    #     'content-type',
+    #     'dnt',
+    #     'origin',
+    #     'user-agent',
+    #     'x-csrftoken',
+    #     'x-requested-with',
+    #     'x-api-key',
+    #     'if-none-match',
+    #     'if-modified-since',
+    #     'cache-control'
+    # ]
     
     # Disable SSL redirect in development
     SECURE_SSL_REDIRECT = False
@@ -310,8 +323,11 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# Static files handling
+STATIC_URL = '/static/'  # Required by Django
+STATIC_ROOT = None
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+STATICFILES_DIRS = []  # Empty list since we don't use static files
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
