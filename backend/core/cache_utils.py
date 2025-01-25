@@ -52,6 +52,10 @@ def set_cache_data(key, data):
     logger.info(f"Setting cache data for {key}")
     cache.set(key, data, CACHE_TIMEOUT)
     
+def is_cache_warming():
+    """Check if cache is currently being warmed"""
+    return cache.get('cache_warming_in_progress', False)
+
 def warm_cache():
     """Warm up the cache with all necessary data"""
     # Try to acquire lock
@@ -62,6 +66,9 @@ def warm_cache():
 
         logger.info("Starting cache warming process...")
         start_time = time.time()
+
+        # Set warming in progress flag
+        cache.set('cache_warming_in_progress', True, LOCK_TIMEOUT)
 
         success = True
         # Use atomic transaction to ensure consistency
@@ -100,13 +107,12 @@ def warm_cache():
             logger.info(f"Cache warming completed successfully in {time.time() - start_time:.2f} seconds")
         
     except Exception as e:
-        logger.error(f"Cache warming failed: {str(e)}")
-        # Don't set empty lists anymore, let it fall back to database
+        logger.error(f"Error during cache warming: {str(e)}")
+        raise
     finally:
-        try:
-            release_lock("cache_warming")
-        except Exception as e:
-            logger.error(f"Error releasing cache lock: {str(e)}")
+        # Always clear the warming in progress flag and release lock
+        cache.delete('cache_warming_in_progress')
+        release_lock("cache_warming")
 
 def get_cached_data(key):
     """Get data from cache, if it doesn't exist or fails, fall back to database"""
@@ -116,9 +122,16 @@ def get_cached_data(key):
         
         # If cache is cold or data is missing, try to warm it
         if data is None and not cache.get('cache_warmed'):
-            logger.warning(f"Cache miss for {key} and cache is cold. Warming cache...")
-            warm_cache()
-            data = cache.get(key)
+            # Check if cache is already being warmed
+            if is_cache_warming():
+                logger.info("Cache is currently being warmed, waiting for data...")
+                # Wait for a short time and try again
+                time.sleep(0.5)
+                data = cache.get(key)
+            else:
+                logger.warning(f"Cache miss for {key} and cache is cold. Warming cache...")
+                warm_cache()
+                data = cache.get(key)
 
         # If still no data after warming, fall back to database
         if data is None:
@@ -145,23 +158,3 @@ def get_cached_data(key):
     except Exception as e:
         logger.error(f"Error getting cached data for {key}: {str(e)}")
         return []
-
-class CoreConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'core'
-
-    def ready(self):
-        """
-        Called when Django starts. This is where we'll warm up our cache.
-        """
-        # Avoid running this in manage.py migrate
-        if os.environ.get('RUN_MAIN', None) != 'true':
-            try:
-                # Run cache warming in a separate thread to not block server startup
-                from threading import Thread
-                thread = Thread(target=warm_cache)
-                thread.daemon = True
-                thread.start()
-                logger.info("Started cache warming thread")
-            except Exception as e:
-                logger.error(f"Failed to start cache warming thread: {str(e)}")

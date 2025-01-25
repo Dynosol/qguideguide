@@ -15,8 +15,21 @@ class CoreConfig(AppConfig):
         # Import here to avoid circular import
         from .cache_utils import warm_cache
         import os
+        from threading import Thread
         
         # Only run on main thread (avoid running twice in development)
         if os.environ.get('RUN_MAIN', None) != 'true':
-            logger.info("Warming cache on startup...")
-            warm_cache()
+            try:
+                # Run cache warming in a separate thread to not block server startup
+                thread = Thread(target=warm_cache)
+                thread.daemon = True
+                thread.start()
+                logger.info("Started cache warming thread")
+            except Exception as e:
+                logger.error(f"Failed to start cache warming thread: {str(e)}")
+                # Fallback to synchronous cache warming
+                logger.info("Falling back to synchronous cache warming...")
+                try:
+                    warm_cache()
+                except Exception as e:
+                    logger.error(f"Failed to warm cache synchronously: {str(e)}")
