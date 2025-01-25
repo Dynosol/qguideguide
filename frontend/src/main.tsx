@@ -8,15 +8,15 @@ if (rootElement) {
     );
 }
 
-// Register service worker
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(registration => {
-        console.log('SW registered:', registration);
-      })
-      .catch(error => {
-        console.log('SW registration failed:', error);
-      });
-  });
-}
+// Service worker registration temporarily disabled due to performance concerns
+// if ('serviceWorker' in navigator && import.meta.env.PROD) {
+//   window.addEventListener('load', () => {
+//     navigator.serviceWorker.register('/service-worker.js')
+//       .then(registration => {
+//         console.log('SW registered:', registration);
+//       })
+//       .catch(error => {
+//         console.log('SW registration failed:', error);
+//       });
+//   });
+// }
