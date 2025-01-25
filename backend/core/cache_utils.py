@@ -31,33 +31,44 @@ def warm_cache():
 
     try:
         logger.info("Starting cache warming process...")
-        # Cache professors data
-        professors = Professor.objects.all().order_by('empirical_bayes_rank')
+        start_time = time.time()
+
+        # Cache courses data with optimized query
+        courses = Course.objects.all().select_related().only(
+            'id', 'title', 'department', 'instructor', 'term',
+            'subject', 'responses', 'course_mean_rating',
+            'materials_mean_rating', 'assignments_mean_rating',
+            'feedback_mean_rating', 'section_mean_rating',
+            'instructor_mean_rating'
+        ).order_by('-course_mean_rating')
+        courses_data = CourseSerializer(courses, many=True).data
+        cache.set('courses_data', courses_data, CACHE_TIMEOUT)
+        logger.info(f"Cached {len(courses_data)} courses in {time.time() - start_time:.2f} seconds")
+
+        # Cache professors data with optimized query
+        professors = Professor.objects.all().only(
+            'id', 'name', 'departments', 'empirical_bayes_rank',
+            'total_ratings', 'empirical_bayes_average'
+        ).order_by('empirical_bayes_rank')
         professors_data = ProfessorSerializer(professors, many=True).data
         cache.set('professors_data', professors_data, CACHE_TIMEOUT)
         logger.info(f"Cached {len(professors_data)} professors")
 
-        # Cache departments data - handle missing fields gracefully
-        try:
-            departments = Department.objects.all().order_by('name')
-            departments_data = DepartmentSerializer(departments, many=True).data
-            cache.set('departments_data', departments_data, CACHE_TIMEOUT)
-            logger.info(f"Cached {len(departments_data)} departments")
-        except Exception as dept_error:
-            logger.warning(f"Error caching departments, skipping: {str(dept_error)}")
-            # Set empty list as fallback
-            cache.set('departments_data', [], CACHE_TIMEOUT)
+        # Cache departments data with optimized query
+        departments = Department.objects.all().only(
+            'id', 'name', 'professor_count', 'empirical_bayes_average'
+        ).order_by('name')
+        departments_data = DepartmentSerializer(departments, many=True).data
+        cache.set('departments_data', departments_data, CACHE_TIMEOUT)
+        logger.info(f"Cached {len(departments_data)} departments")
 
-        # Cache courses data
-        courses = Course.objects.all().order_by('title')
-        courses_data = CourseSerializer(courses, many=True).data
-        cache.set('courses_data', courses_data, CACHE_TIMEOUT)
-        logger.info(f"Cached {len(courses_data)} courses")
-
-        logger.info("Cache warming completed successfully")
+        logger.info(f"Cache warming completed in {time.time() - start_time:.2f} seconds")
     except Exception as e:
-        logger.error(f"Error during cache warming: {str(e)}")
-        raise
+        logger.error(f"Error warming cache: {str(e)}")
+        # Set empty lists as fallback
+        cache.set('courses_data', [], CACHE_TIMEOUT)
+        cache.set('professors_data', [], CACHE_TIMEOUT)
+        cache.set('departments_data', [], CACHE_TIMEOUT)
     finally:
         release_lock("cache_warming")
 

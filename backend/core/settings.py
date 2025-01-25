@@ -227,21 +227,10 @@ else:
             "LOCATION": config('REDIS_URL', default='redis://127.0.0.1:6379/0'),
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                "SOCKET_CONNECT_TIMEOUT": 5,  # seconds
-                "SOCKET_TIMEOUT": 5,  # seconds
+                "CONNECTION_POOL_KWARGS": {"max_connections": 100},
+                "SOCKET_CONNECT_TIMEOUT": 5,
+                "SOCKET_TIMEOUT": 5,
                 "RETRY_ON_TIMEOUT": True,
-                "MAX_CONNECTIONS": 100,
-                "CONNECTION_POOL_KWARGS": {
-                    "max_connections": 100,
-                    "retry_on_timeout": True,
-                    "socket_timeout": 5,
-                    "socket_connect_timeout": 5,
-                },
-                "IGNORE_EXCEPTIONS": True,  # Don't crash on Redis errors
-                "REDIS_CLIENT_KWARGS": {
-                    "ssl": True,  # Enable SSL for production Redis
-                    "ssl_cert_reqs": None  # Don't verify SSL cert
-                } if not DEBUG else {}  # Only use SSL in production
             }
         }
     }

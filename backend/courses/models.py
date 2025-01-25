@@ -95,8 +95,8 @@ class Course(models.Model):
 
     class Meta:
         indexes = [
-            models.Index(fields=['title', 'department', 'instructor']),
-            models.Index(fields=['course_mean_rating', 'responses']),
+            models.Index(fields=['term', 'department', 'instructor']),
+            models.Index(fields=['course_mean_rating', 'department']),
         ]
 
 class CourseFeedbackQuestion(models.Model):
