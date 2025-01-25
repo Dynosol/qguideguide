@@ -3,10 +3,10 @@ import os
 
 # Number of worker processes
 workers = 2  # Reduced from default to conserve memory
-threads = 2
+threads = 1  # Single thread per worker for thread safety
 
 # Worker settings
-worker_class = 'gevent'  # Use gevent for better async performance
+worker_class = 'sync'  # Use sync workers instead of gevent
 worker_connections = 1000
 
 # Timeouts

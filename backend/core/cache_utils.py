@@ -74,24 +74,33 @@ def warm_cache():
         # Use atomic transaction to ensure consistency
         with transaction.atomic():
             try:
-                # Cache courses data
+                # Cache in chunks to reduce memory usage
+                def cache_in_chunks(model, serializer_class, cache_key, chunk_size=100):
+                    total = model.objects.count()
+                    chunks = (total // chunk_size) + (1 if total % chunk_size else 0)
+                    
+                    all_data = []
+                    for i in range(chunks):
+                        offset = i * chunk_size
+                        chunk = model.objects.select_related().all().order_by('id')[offset:offset + chunk_size]
+                        chunk_data = serializer_class(chunk, many=True).data
+                        all_data.extend(chunk_data)
+                        logger.info(f"Cached chunk {i+1}/{chunks} for {cache_key}")
+                    
+                    set_cache_data(cache_key, all_data)
+                    logger.info(f"Finished caching {total} items for {cache_key}")
+
+                # Cache courses data in chunks
                 logger.info("Caching courses...")
-                courses = Course.objects.select_related().all().order_by('title')
-                logger.info(f"Found {len(courses)} courses")
-                courses_data = CourseSerializer(courses, many=True).data
-                set_cache_data('courses_data', courses_data)
+                cache_in_chunks(Course, CourseSerializer, 'courses_data', chunk_size=50)
 
-                # Cache professors data
+                # Cache professors data in chunks
                 logger.info("Caching professors...")
-                professors = Professor.objects.select_related().all().order_by('empirical_bayes_rank')
-                logger.info(f"Found {len(professors)} professors")
-                professors_data = ProfessorSerializer(professors, many=True).data
-                set_cache_data('professors_data', professors_data)
+                cache_in_chunks(Professor, ProfessorSerializer, 'professors_data', chunk_size=100)
 
-                # Cache departments data
+                # Cache departments data (usually small enough to do at once)
                 logger.info("Caching departments...")
                 departments = Department.objects.select_related().all().order_by('name')
-                logger.info(f"Found {len(departments)} departments")
                 departments_data = DepartmentSerializer(departments, many=True).data
                 set_cache_data('departments_data', departments_data)
 
@@ -114,6 +123,17 @@ def warm_cache():
         cache.delete('cache_warming_in_progress')
         release_lock("cache_warming")
 
+def get_cached_data(cache_key):
+    """
+    Thread-safe function to get data from cache
+    """
+    try:
+        return cache.get(cache_key)
+    except Exception as e:
+        # Log the error but don't raise it - let the view fall back to database
+        print(f"Cache error in get_cached_data for key {cache_key}: {str(e)}")
+        return None
+
 def get_cached_data(key):
     """Get data from cache, if it doesn't exist or fails, fall back to database"""
     try:
@@ -133,28 +153,30 @@ def get_cached_data(key):
                 warm_cache()
                 data = cache.get(key)
 
-        # If still no data after warming, fall back to database
+        # If still no data after warming, fall back to database with chunking
         if data is None:
             logger.warning(f"Cache miss for {key} after warming attempt")
             with transaction.atomic():
-                if key == 'courses_data':
-                    logger.info("Getting courses data from database")
-                    courses = Course.objects.select_related().all().order_by('title')
-                    data = CourseSerializer(courses, many=True).data
-                elif key == 'professors_data':
-                    logger.info("Getting professors data from database")
-                    professors = Professor.objects.select_related().all().order_by('empirical_bayes_rank')
-                    data = ProfessorSerializer(professors, many=True).data
-                elif key == 'departments_data':
-                    logger.info("Getting departments data from database")
-                    departments = Department.objects.select_related().all().order_by('name')
-                    data = DepartmentSerializer(departments, many=True).data
+                chunk_size = 100  # Default chunk size
+                all_data = []
                 
-                if data:
-                    set_cache_data(key, data)
-                    logger.info(f"Cached {len(data)} items for {key}")
-        
-        return data
+                if key == 'courses_data':
+                    chunk_size = 50  # Smaller chunks for courses due to size
+                    for chunk in Course.objects.select_related().all().order_by('title').iterator(chunk_size=chunk_size):
+                        all_data.append(CourseSerializer(chunk).data)
+                elif key == 'professors_data':
+                    for chunk in Professor.objects.select_related().all().order_by('empirical_bayes_rank').iterator(chunk_size=chunk_size):
+                        all_data.append(ProfessorSerializer(chunk).data)
+                elif key == 'departments_data':
+                    departments = Department.objects.select_related().all().order_by('name')
+                    all_data = DepartmentSerializer(departments, many=True).data
+                
+                if all_data:
+                    set_cache_data(key, all_data)
+                    logger.info(f"Cached {len(all_data)} items for {key}")
+                    data = all_data
+
+        return data or []
     except Exception as e:
         logger.error(f"Error getting cached data for {key}: {str(e)}")
         return []
