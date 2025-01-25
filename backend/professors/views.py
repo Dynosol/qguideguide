@@ -23,7 +23,7 @@ def generate_etag(data):
     data_str = json.dumps(data, sort_keys=True)
     return hashlib.md5(data_str.encode()).hexdigest()
 
-class ProfessorViewSet(ThrottledViewSet, viewsets.ReadOnlyModelViewSet):
+class ProfessorViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Professor.objects.all().order_by('empirical_bayes_rank')
     serializer_class = ProfessorSerializer
     pagination_class = ProfessorPagination
@@ -57,7 +57,7 @@ class ProfessorViewSet(ThrottledViewSet, viewsets.ReadOnlyModelViewSet):
         finally:
             connection.close()  # Always close the connection when done
 
-class DepartmentViewSet(ThrottledViewSet, viewsets.ReadOnlyModelViewSet):
+class DepartmentViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Department.objects.all().order_by('name')
     serializer_class = DepartmentSerializer
     pagination_class = ProfessorPagination
