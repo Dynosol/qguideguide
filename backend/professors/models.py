@@ -9,6 +9,7 @@ class Department(models.Model):
     professor_count = models.IntegerField(null=True, blank=True)
     empirical_bayes_average = models.FloatField(null=True, blank=True)
     empirical_bayes_rank = models.FloatField(null=True, blank=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
@@ -26,5 +27,3 @@ class Professor(models.Model):
 
     def __str__(self):
         return self.name
-
-

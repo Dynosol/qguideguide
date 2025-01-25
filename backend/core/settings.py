@@ -77,6 +77,7 @@ if DEBUG:
     # In development, allow all origins for easier testing
     CORS_ALLOW_ALL_ORIGINS = True
     CORS_ALLOW_CREDENTIALS = True
+    CORS_ORIGIN_ALLOW_ALL = True
     
     # Move CORS middleware to the top
     MIDDLEWARE = [
@@ -92,6 +93,24 @@ if DEBUG:
         'csp.middleware.CSPMiddleware',
         'django.middleware.cache.UpdateCacheMiddleware',
         'django.middleware.cache.FetchFromCacheMiddleware',
+    ]
+    
+    # Additional CORS settings for development
+    CORS_EXPOSE_HEADERS = ['ETag', 'Cache-Control', 'Last-Modified']
+    CORS_ALLOW_HEADERS = [
+        'accept',
+        'accept-encoding',
+        'authorization',
+        'content-type',
+        'dnt',
+        'origin',
+        'user-agent',
+        'x-csrftoken',
+        'x-requested-with',
+        'x-api-key',
+        'if-none-match',
+        'if-modified-since',
+        'cache-control'
     ]
     
     # Disable SSL redirect in development
@@ -194,7 +213,7 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '20/hour',  
         'user': '100/hour',  
-        'token_gen': '5/minute',  
+        'token_gen': '10/minute',  
         'api_endpoints': '50/hour',  
     },
 }

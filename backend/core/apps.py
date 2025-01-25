@@ -1,18 +1,22 @@
 from django.apps import AppConfig
-from django.db.migrations.executor import MigrationExecutor
-from django.db import connections
+import logging
+
+logger = logging.getLogger(__name__)
 
 class CoreConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'core'
 
     def ready(self):
-        """Warm up the cache during application startup, but only after migrations."""
-        # Skip cache warming during migrations
-        connection = connections['default']
-        executor = MigrationExecutor(connection)
-        plan = executor.migration_plan(executor.loader.graph.leaf_nodes())
+        """
+        Called when Django starts. This is where we'll warm up our cache.
+        Note: In development with auto-reloader, this runs twice - once for the reloader, once for the actual process.
+        """
+        # Import here to avoid circular import
+        from .cache_utils import warm_cache
+        import os
         
-        if not plan:  # No migrations needed
-            from core.cache_utils import warm_cache
-            warm_cache()  # Only warm cache if no migrations pending
+        # Only run on main thread (avoid running twice in development)
+        if os.environ.get('RUN_MAIN', None) != 'true':
+            logger.info("Warming cache on startup...")
+            warm_cache()

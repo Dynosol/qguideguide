@@ -6,12 +6,14 @@ from rest_framework_datatables import filters as dt_filters
 from .models import Course
 from .serializers import CourseSerializer
 from rest_framework.pagination import LimitOffsetPagination
-from django.utils.http import http_date
+from django.utils.http import http_date, quote_etag
 from datetime import datetime
 from core.cache_utils import get_cached_data, cache
 from core.viewsets import ThrottledViewSet
 import logging
 import time
+import hashlib
+import json
 
 REQUEST_LIMIT = None
 
@@ -19,6 +21,11 @@ class CoursePagination(LimitOffsetPagination):
     default_limit = REQUEST_LIMIT
 
 logger = logging.getLogger(__name__)
+
+def generate_etag(data):
+    """Generate an ETag from the data"""
+    data_str = json.dumps(data, sort_keys=True)
+    return hashlib.md5(data_str.encode()).hexdigest()
 
 class CourseViewSet(ThrottledViewSet):
     queryset = Course.objects.all()
@@ -57,6 +64,13 @@ class CourseViewSet(ThrottledViewSet):
                 for query in queries:
                     logger.warning(f"Query: {query['sql'][:500]}...")
                     logger.warning(f"Time: {query['time']}")
+
+            # Generate ETag
+            etag = quote_etag(generate_etag(data))
+            
+            # Check if client's ETag matches
+            if request.META.get('HTTP_IF_NONE_MATCH') == etag:
+                return Response(status=304)
             
             # Handle pagination
             page = self.paginate_queryset(data)
@@ -67,6 +81,13 @@ class CourseViewSet(ThrottledViewSet):
             
             # Calculate total duration
             total_duration = (time.time() - start_time) * 1000
+
+            # Set response headers
+            response['ETag'] = etag
+            response['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
+            latest_update = Course.objects.aggregate(Max('modified_at'))['modified_at__max']
+            if latest_update:
+                response['Last-Modified'] = http_date(datetime.timestamp(latest_update))
 
             # Set Server-Timing header with detailed timing
             timings = [
@@ -99,44 +120,28 @@ class CourseViewSet(ThrottledViewSet):
 
     @action(detail=False, methods=['get'])
     def debug(self, request):
-        """Diagnostic endpoint to help debug performance issues"""
+        """Debug endpoint to check cache and database timing"""
         try:
-            from django.db import connection
-            from django.core.cache import cache
-            import json
-
-            # Test cache
+            # Get data from cache
             cache_start = time.time()
-            cache_test = cache.set('test_key', 'test_value', 10)
-            cache_get = cache.get('test_key')
+            cached_data = get_cached_data('courses_data')
             cache_time = (time.time() - cache_start) * 1000
-
-            # Test database
+            
+            # Get data from database
             db_start = time.time()
-            test_query = Course.objects.all()[:1]
-            list(test_query)  # Execute the query
+            queryset = self.get_queryset()
+            serializer = self.get_serializer(queryset, many=True)
+            db_data = serializer.data
             db_time = (time.time() - db_start) * 1000
-
-            # Get cache stats
-            cache_keys = {
-                'courses_data': cache.get('courses_data') is not None,
-                'courses_data': cache.get('courses_data') is not None,
-                'professors_data': cache.get('professors_data') is not None,
-                'departments_data': cache.get('departments_data') is not None,
-            }
-
+            
             return Response({
-                'cache': {
-                    'working': cache_test and cache_get == 'test_value',
-                    'time_ms': cache_time,
-                    'keys_present': cache_keys
-                },
-                'database': {
-                    'time_ms': db_time,
-                    'backend': connection.vendor,
-                    'queries_executed': len(connection.queries)
-                }
+                'cache_hit': cached_data is not None,
+                'cache_time_ms': cache_time,
+                'db_time_ms': db_time,
+                'cached_items': len(cached_data) if cached_data else 0,
+                'db_items': len(db_data),
+                'data_match': cached_data == db_data if cached_data else False
             })
         except Exception as e:
-            logger.error(f"Error in diagnostic endpoint: {str(e)}", exc_info=True)
+            logger.error(f"Error in debug endpoint: {str(e)}")
             return Response({"error": str(e)}, status=500)

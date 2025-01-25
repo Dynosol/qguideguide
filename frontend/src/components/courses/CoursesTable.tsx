@@ -52,23 +52,72 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
     [mode]
   );
 
-  // Load data from IndexedDB or fetch from server
+  // Load data with stale-while-revalidate pattern
   useEffect(() => {
-    (async () => {
+    const fetchData = async () => {
       try {
-        const count = await db.courses.count();
-        if (count === 0) {
-          await fetchAndStoreCourses();
-        } else {
-          const storedCourses = await db.courses.toArray();
-          setData(storedCourses);
+        setIsLoading(true);
+
+        // First try to get data from IndexedDB
+        const cachedCourses = await db.courses.toArray();
+        const metadata = await db.metadata.get('etags');
+        
+        // If we have cached data, show it immediately
+        if (cachedCourses.length > 0) {
+          setData(cachedCourses);
           setIsLoading(false);
         }
+
+        // Prepare headers for conditional request
+        const headers: Record<string, string> = {};
+        if (metadata?.coursesEtag) {
+          headers['If-None-Match'] = metadata.coursesEtag;
+        }
+
+        // Fetch fresh data in the background
+        const response = await fetchCourses(headers);
+        
+        // Only update if we got new data (not 304)
+        if (response.status !== 304) {
+          const courses = Array.isArray(response.data) ? response.data :
+                       (response.data.results ? response.data.results : []);
+
+          if (courses.length > 0) {
+            setData(courses);
+            
+            // Update IndexedDB
+            await db.transaction('rw', db.courses, async () => {
+              await db.courses.clear();
+              await db.courses.bulkAdd(courses);
+            });
+
+            // Store new ETag
+            await db.metadata.put({
+              key: 'etags',
+              value: {
+                ...metadata?.value,
+                coursesEtag: response.headers.etag,
+                lastUpdate: new Date().toISOString()
+              }
+            });
+          }
+        }
       } catch (error) {
-        console.error('Error loading from Dexie', error);
+        console.error('Error fetching or storing courses:', error);
+        if (axios.isAxiosError(error)) {
+          console.error('Axios error details:', {
+            response: error.response?.data,
+            status: error.response?.status,
+            headers: error.response?.headers,
+            config: error.config
+          });
+        }
+      } finally {
         setIsLoading(false);
       }
-    })();
+    };
+
+    fetchData();
   }, []);
 
   // Debounce search input
@@ -93,41 +142,6 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
     window.addEventListener('resize', updateColumnPinning);
     return () => window.removeEventListener('resize', updateColumnPinning);
   }, []);
-
-  // Fetch and store courses
-  const fetchAndStoreCourses = async () => {
-    setIsLoading(true);
-    try {
-      console.log('Fetching courses from:', config.apiBaseUrl);
-      const response = await fetchCourses();
-      console.log('Courses response:', response);
-      
-      // Extract courses array from response
-      const courses = Array.isArray(response.data) ? response.data :
-                     (response.data.results ? response.data.results : []);
-
-      if (courses.length > 0) {
-        await db.transaction('rw', db.courses, async () => {
-          await db.courses.clear();
-          await db.courses.bulkAdd(courses);
-        });
-      }
-
-      setData(courses);
-    } catch (error) {
-      console.error('Error fetching or storing courses:', error);
-      if (axios.isAxiosError(error)) {
-        console.error('Axios error details:', {
-          response: error.response?.data,
-          status: error.response?.status,
-          headers: error.response?.headers,
-          config: error.config
-        });
-      }
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // Import columns using the helper function
   const columns = useMemo<MRT_ColumnDef<Course>[]>(

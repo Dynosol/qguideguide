@@ -7,6 +7,7 @@ const api = axios.create({
   baseURL: config.apiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
   withCredentials: true, // Enable sending cookies with requests
 });
@@ -19,6 +20,12 @@ api.interceptors.request.use(async request => {
   if (token) {
     request.headers['Authorization'] = `Bearer ${token}`;
   }
+
+  // Add API key if available
+  if (config.apiKey) {
+    request.headers['x-api-key'] = config.apiKey;
+  }
+
   return request;
 });
 
@@ -45,13 +52,27 @@ api.interceptors.response.use(
       }
     }
 
-    console.error('API Error:', {
-      url: error.config?.url,
-      method: error.config?.method,
-      headers: error.config?.headers,
-      status: error.response?.status,
-      data: error.response?.data
-    });
+    // Log CORS and other errors
+    if (error.response) {
+      console.error('API Error:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        status: error.response.status,
+        statusText: error.response.statusText,
+        headers: {
+          request: error.config?.headers,
+          response: error.response.headers
+        },
+        data: error.response.data
+      });
+    } else if (error.request) {
+      console.error('Network Error:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        error: error.message
+      });
+    }
+
     return Promise.reject(error);
   }
 );
@@ -62,10 +83,41 @@ const initializeAuth = async () => {
   await auth.initialize();
 };
 
-initializeAuth().catch(console.error);
+// Initialize API
+const initializeAPI = async () => {
+  try {
+    await initializeAuth();
+    // Only fetch professors and departments initially
+    await Promise.all([
+      fetchProfessors(),
+      fetchDepartments()
+    ]);
+  } catch (error) {
+    console.error('API initialization failed:', error);
+  }
+};
 
-export const fetchProfessors = () => api.get('/api/professors/');
-export const fetchDepartments = () => api.get('/api/departments/');
-export const fetchCourses = () => api.get('/api/courses/');
+initializeAPI().catch(console.error);
+
+export const fetchProfessors = (headers = {}) => api.get('/api/professors/', {
+  headers: {
+    'Cache-Control': 'public, max-age=3600',
+    ...headers
+  }
+});
+
+export const fetchDepartments = (headers = {}) => api.get('/api/departments/', {
+  headers: {
+    'Cache-Control': 'public, max-age=3600',
+    ...headers
+  }
+});
+
+export const fetchCourses = (headers = {}) => api.get('/api/courses/', {
+  headers: {
+    'Cache-Control': 'public, max-age=3600',
+    ...headers
+  }
+});
 
 export default api;
