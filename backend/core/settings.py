@@ -224,6 +224,7 @@ INSTALLED_APPS = [
     'professors',
     'courses',
     'rest_framework_datatables',
+    'rest_framework_simplejwt',
     'csp',
     'health_check',
     'health_check.db',
