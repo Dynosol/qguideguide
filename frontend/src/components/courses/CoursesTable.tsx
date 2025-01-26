@@ -218,7 +218,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
     },
     renderBottomToolbarCustomActions: () => (
       <div style={{ padding: '8px' }}>
-        {isLoading ? 'Loading courses...' : "All courses loaded from Fall '19 - Spring '23"}
+        {isLoading ? 'Loading courses... this might take a while...' : "All courses loaded from Fall '19 - Spring '23"}
       </div>
     ),
   });
