@@ -58,6 +58,7 @@ CORS_EXPOSE_HEADERS = [
     'etag',
     'cache-control',
     'last-modified',
+    'x-session-token',  # Add this line
 ]
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -70,11 +71,17 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
     'x-api-key',
+    'x-session-token',  # Add this
     'cache-control',
     'if-match',
     'if-none-match',
     'if-modified-since',
 ]
+
+# Ensure CORS preflight requests work properly
+CORS_PREFLIGHT_MAX_AGE = 86400  # 24 hours
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',
@@ -91,6 +98,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'core.middleware.SessionTokenMiddleware',  # Add this line
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -127,6 +135,13 @@ if DEBUG:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+
+    CORS_ALLOWED_ORIGINS = [
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+    ]
+    # Remove any CORS_ORIGIN_ALLOW_ALL settings if present
+    CORS_ALLOW_ALL_ORIGINS = False  # Be explicit about allowed origins
 else:
     ALLOWED_HOSTS = [
         'api.qguideguide.com',
@@ -168,21 +183,18 @@ else:
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": config('REDIS_URL', default='redis://127.0.0.1:6379/0'),
+        "LOCATION": config('REDIS_URL'),  # Get from render.com environment variable
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {
-                "max_connections": 100,
+                "max_connections": 50,
                 "retry_on_timeout": True,
-                "socket_keepalive": True,
             },
             "SOCKET_CONNECT_TIMEOUT": 5,
             "SOCKET_TIMEOUT": 5,
             "RETRY_ON_TIMEOUT": True,
-            "MAX_CONNECTIONS": 100,
-            "IGNORE_EXCEPTIONS": True,  # Don't fail on Redis errors
-        },
-        "KEY_PREFIX": "qguideguide",
+            "MAX_CONNECTIONS": 50,
+        }
     }
 }
 
@@ -233,12 +245,22 @@ REST_FRAMEWORK = {
         'rest_framework.throttling.UserRateThrottle',
     ],
     'DEFAULT_THROTTLE_RATES': {
-        'anon': '20/hour',  
-        'user': '100/hour',  
-        'token_gen': '10/minute',  
-        'api_endpoints': '50/hour',  
+        'anon': '200/hour',  
+        'user': '1000/hour',  
+        'token_gen': '100/minute',  
+        'api_endpoints': '500/hour',  
     },
+    'DEFAULT_AUTHENTICATION_CLASSES': [],  # Remove JWT authentication
+    'DEFAULT_PERMISSION_CLASSES': [],      # Allow unauthenticated access
 }
+
+# Session settings
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_AGE = 86400  # 24 hours
 
 ROOT_URLCONF = 'core.urls'
 

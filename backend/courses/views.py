@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework_datatables import filters as dt_filters
 from .models import Course
 from .serializers import CourseSerializer
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 from django.utils.http import http_date, quote_etag
 from core.cache_utils import cache, get_cached_data
 from django.db import connection
@@ -22,10 +22,15 @@ def generate_etag(data):
     data_str = json.dumps(data, sort_keys=True)
     return hashlib.md5(data_str.encode()).hexdigest()
 
+class CoursePageNumberPagination(PageNumberPagination):
+    page_size = 100
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Course.objects.all()
+    queryset = Course.objects.all().order_by('title')
     serializer_class = CourseSerializer
-    pagination_class = CoursePagination
+    pagination_class = None  # Disable pagination for full dataset caching
 
     def get_queryset(self):
         """Get queryset with proper connection handling"""
@@ -34,25 +39,13 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            # Try to get from cache first
             data = get_cached_data('courses_data')
-            if data:
-                return Response(data)
-
-            # If not in cache, get from database with proper connection handling
-            connection.ensure_connection()  # Ensure we have a fresh connection
-            queryset = self.get_queryset().order_by('title')
-            
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                data = self.get_paginated_response(serializer.data).data
-            else:
-                serializer = self.get_serializer(queryset, many=True)
-                data = serializer.data
-            
-            # Cache the result
-            cache.set('courses_data', data, timeout=86400)
             return Response(data)
-        finally:
-            connection.close()  # Always close the connection when done
+        except Exception as e:
+            connection.ensure_connection()
+            try:
+                queryset = self.get_queryset()
+                serializer = self.get_serializer(queryset, many=True)
+                return Response(serializer.data)
+            finally:
+                connection.close()

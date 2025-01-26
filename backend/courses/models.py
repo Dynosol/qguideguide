@@ -97,6 +97,9 @@ class Course(models.Model):
         indexes = [
             models.Index(fields=['term', 'department', 'instructor']),
             models.Index(fields=['course_mean_rating', 'department']),
+            models.Index(fields=['title']),  # Add indexes for optimization
+            models.Index(fields=['department']),
+            models.Index(fields=['instructor']),
         ]
 
 class CourseFeedbackQuestion(models.Model):

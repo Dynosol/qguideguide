@@ -6,6 +6,7 @@ import logging
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.urls import resolve
+import secrets
 
 # Set up loggers
 security_logger = logging.getLogger('security')
@@ -14,7 +15,7 @@ api_logger = logging.getLogger('api')
 class RateLimitMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
-        self.rate_limit = 100  # requests per minute
+        self.rate_limit = 1000  # requests per minute
         self.window = 60  # seconds
 
     def __call__(self, request):
@@ -94,3 +95,39 @@ class RateLimitMiddleware:
         if x_forwarded_for:
             return x_forwarded_for.split(',')[0]
         return request.META.get('REMOTE_ADDR')
+
+class SessionTokenMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Allow OPTIONS requests to pass through without token check
+        if request.method == 'OPTIONS':
+            return self.get_response(request)
+
+        if request.path.startswith('/api/'):
+            # Skip token validation for the first request
+            is_first_request = not request.headers.get('X-Session-Token')
+            session_token = request.session.get('api_token')
+
+            if is_first_request:
+                # Generate new token if none exists
+                if not session_token:
+                    session_token = secrets.token_urlsafe(32)
+                    request.session['api_token'] = session_token
+                    request.session.set_expiry(86400)  # 24 hours
+            else:
+                # Validate token for subsequent requests
+                request_token = request.headers.get('X-Session-Token')
+                if not request_token or request_token != session_token:
+                    return JsonResponse({'error': 'Invalid session token'}, status=401)
+
+        response = self.get_response(request)
+        
+        # Add token to response headers for all API requests
+        if request.path.startswith('/api/'):
+            response['X-Session-Token'] = request.session['api_token']
+            # Add CORS headers specifically for the token
+            response['Access-Control-Expose-Headers'] = 'X-Session-Token, ' + response.get('Access-Control-Expose-Headers', '')
+        
+        return response

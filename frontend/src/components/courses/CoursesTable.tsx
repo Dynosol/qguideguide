@@ -1,6 +1,6 @@
 // src/components/CoursesTable/CoursesTable.tsx
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -52,51 +52,43 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
     [mode]
   );
 
-  // Load data with stale-while-revalidate pattern
+  // Load all data at once
   useEffect(() => {
-    const fetchData = async () => {
+    const loadData = async () => {
+      setIsLoading(true);
       try {
-        setIsLoading(true);
-        const cachedCourses = await db.courses.toArray();
+        // Try to get data from IndexedDB first
+        const cachedData = await db.courses.toArray();
         
-        // If we have cached data, show it immediately
-        if (cachedCourses.length > 0) {
-          setData(cachedCourses);
+        if (cachedData && cachedData.length > 0) {
+          console.log('Loading data from cache...');
+          setData(cachedData);
           setIsLoading(false);
         }
 
-        // Fetch fresh data in the background
+        // Always fetch fresh data from API
+        console.log('Fetching fresh data...');
         const response = await fetchCourses();
-        
-        const courses = Array.isArray(response.data) ? response.data :
-                     (response.data.results ? response.data.results : []);
+        const freshData = response.data;
 
-        if (courses.length > 0) {
-          setData(courses);
-          
-          // Update IndexedDB
-          await db.transaction('rw', db.courses, async () => {
-            await db.courses.clear();
-            await db.courses.bulkAdd(courses);
-          });
-        }
+        // Update state with fresh data
+        setData(freshData);
+        
+        // Update cache with fresh data
+        await db.transaction('rw', db.courses, async () => {
+          await db.courses.clear(); // Clear old cache
+          await db.courses.bulkAdd(freshData);
+        });
+        
       } catch (error) {
-        console.error('Error fetching or storing courses:', error);
-        if (axios.isAxiosError(error)) {
-          console.error('Axios error details:', {
-            response: error.response?.data,
-            status: error.response?.status,
-            headers: error.response?.headers,
-            config: error.config
-          });
-        }
+        console.error('Error loading courses:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchData();
-  }, []);
+    loadData();
+  }, [position]); // Reload when position changes
 
   // Debounce search input
   useEffect(() => {
@@ -150,13 +142,14 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
       setGlobalFilter(newValue);
       setSearchValue(newValue);
     },
-    muiPaginationProps: {
-      rowsPerPageOptions: [10, 25, 50, 100, 250, 500, 1000, 5000, 11608],
-      showFirstButton: true,
-      showLastButton: true,
+    enablePagination: false,
+    enableRowVirtualization: true,
+    virtualizationOptions: {
+      overscan: 25,
     },
-    enableColumnPinning: true,
-    enableFacetedValues: true,
+    enableToolbarBottom: true,
+    enableToolbarTop: true,
+    enableColumnFilters: true,
     initialState: {
       columnVisibility: {
         responses: false,
@@ -204,8 +197,6 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
     muiSkeletonProps: {
       animation: 'wave',
     },
-    enableRowVirtualization: true,
-    enablePagination: true,
     muiTableBodyRowProps: ({ row }) => ({
       onClick: () => {
         const { url } = row.original;
@@ -219,14 +210,17 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
         cursor: 'pointer',
       },
     }),
-    muiTableContainerProps: { sx: { maxHeight: '79vh' } },
-    // muiTableBodyProps: {
-    //   sx: {
-    //     '& tr:nth-of-type(odd) > td': {
-    //       backgroundColor: colorPalettes[mode].stripes,
-    //     },
-    //   },
-    // },
+    muiTableContainerProps: {
+      sx: { 
+        maxHeight: '79vh',
+        overflowY: 'auto',
+      },
+    },
+    renderBottomToolbarCustomActions: () => (
+      <div style={{ padding: '8px' }}>
+        {isLoading ? 'Loading courses...' : "All courses loaded from Fall '19 - Spring '23"}
+      </div>
+    ),
   });
 
   return (
