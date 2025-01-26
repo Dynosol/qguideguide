@@ -96,21 +96,6 @@ class RateLimitMiddleware:
             return x_forwarded_for.split(',')[0]
         return request.META.get('REMOTE_ADDR')
 
-class JWTMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        response = self.get_response(request)
-        
-        # If authentication created a new anonymous token, add it to response
-        if hasattr(request, 'anonymous_token'):
-            response['Authorization'] = f'Bearer {request.anonymous_token}'
-            response['Access-Control-Expose-Headers'] = 'Authorization, ' + response.get('Access-Control-Expose-Headers', '')
-        
-        return response
-
-# Update the existing SessionTokenMiddleware
 class SessionTokenMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
@@ -121,13 +106,7 @@ class SessionTokenMiddleware:
             return self.get_response(request)
 
         if request.path.startswith('/api/'):
-            # Check for JWT token first
-            auth_header = request.headers.get('Authorization')
-            if auth_header and auth_header.startswith('Bearer '):
-                # Let the JWT authentication handle this
-                return self.get_response(request)
-
-            # Fall back to session token logic
+            # Skip token validation for the first request
             is_first_request = not request.headers.get('X-Session-Token')
             session_token = request.session.get('api_token')
 

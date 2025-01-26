@@ -98,6 +98,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'core.middleware.SessionTokenMiddleware',  # Add this line
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -246,11 +247,11 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'anon': '200/hour',  
         'user': '1000/hour',  
+        'token_gen': '100/minute',  
         'api_endpoints': '500/hour',  
     },
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Allow anonymous access
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [],  # Remove JWT authentication
+    'DEFAULT_PERMISSION_CLASSES': [],      # Allow unauthenticated access
 }
 
 # Session settings
