@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django_redis import get_redis_connection  # Import get_redis_connection
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 api_router = DefaultRouter()
 api_router.register(r'courses', CourseViewSet, basename='course')
@@ -74,4 +75,8 @@ urlpatterns = [
 
     # API endpoints
     path('api/', include(api_router.urls)),
+
+    # Authentication endpoints
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

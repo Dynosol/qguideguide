@@ -1,9 +1,6 @@
 from django.core.cache import cache
-from professors.models import Professor
 from professors.serializers import ProfessorSerializer
-from courses.models import Course
 from courses.serializers import CourseSerializer
-from professors.models import Department
 from professors.serializers import DepartmentSerializer
 from django.db.models import Prefetch
 import logging
@@ -57,6 +54,8 @@ def is_cache_warming():
     return cache.get('cache_warming_in_progress', False)
 
 def warm_cache():
+    from courses.models import Course
+    from professors.models import Professor, Department
     """Warm up the cache with all necessary data"""
     # Try to acquire lock
     try:
@@ -161,13 +160,16 @@ def get_cached_data(key):
                 all_data = []
                 
                 if key == 'courses_data':
+                    from courses.models import Course
                     chunk_size = 50  # Smaller chunks for courses due to size
                     for chunk in Course.objects.select_related().all().order_by('title').iterator(chunk_size=chunk_size):
                         all_data.append(CourseSerializer(chunk).data)
                 elif key == 'professors_data':
+                    from professors.models import Professor
                     for chunk in Professor.objects.select_related().all().order_by('empirical_bayes_rank').iterator(chunk_size=chunk_size):
                         all_data.append(ProfessorSerializer(chunk).data)
                 elif key == 'departments_data':
+                    from professors.models import Department
                     departments = Department.objects.select_related().all().order_by('name')
                     all_data = DepartmentSerializer(departments, many=True).data
                 
