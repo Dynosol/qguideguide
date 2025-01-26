@@ -1,7 +1,4 @@
 from django.core.cache import cache
-from professors.serializers import ProfessorSerializer
-from courses.serializers import CourseSerializer
-from professors.serializers import DepartmentSerializer
 from django.db.models import Prefetch
 import logging
 import time
@@ -54,8 +51,11 @@ def is_cache_warming():
     return cache.get('cache_warming_in_progress', False)
 
 def warm_cache():
+    # lazy loading!!!
     from courses.models import Course
     from professors.models import Professor, Department
+    from professors.serializers import DepartmentSerializer, ProfessorSerializer
+    from courses.serializers import CourseSerializer
     """Warm up the cache with all necessary data"""
     # Try to acquire lock
     try:
@@ -122,17 +122,6 @@ def warm_cache():
         cache.delete('cache_warming_in_progress')
         release_lock("cache_warming")
 
-def get_cached_data(cache_key):
-    """
-    Thread-safe function to get data from cache
-    """
-    try:
-        return cache.get(cache_key)
-    except Exception as e:
-        # Log the error but don't raise it - let the view fall back to database
-        print(f"Cache error in get_cached_data for key {cache_key}: {str(e)}")
-        return None
-
 def get_cached_data(key):
     """Get data from cache, if it doesn't exist or fails, fall back to database"""
     try:
@@ -161,15 +150,18 @@ def get_cached_data(key):
                 
                 if key == 'courses_data':
                     from courses.models import Course
+                    from courses.serializers import CourseSerializer
                     chunk_size = 50  # Smaller chunks for courses due to size
                     for chunk in Course.objects.select_related().all().order_by('title').iterator(chunk_size=chunk_size):
                         all_data.append(CourseSerializer(chunk).data)
                 elif key == 'professors_data':
                     from professors.models import Professor
+                    from professors.serializers import ProfessorSerializer
                     for chunk in Professor.objects.select_related().all().order_by('empirical_bayes_rank').iterator(chunk_size=chunk_size):
                         all_data.append(ProfessorSerializer(chunk).data)
                 elif key == 'departments_data':
                     from professors.models import Department
+                    from professors.serializers import DepartmentSerializer
                     departments = Department.objects.select_related().all().order_by('name')
                     all_data = DepartmentSerializer(departments, many=True).data
                 
