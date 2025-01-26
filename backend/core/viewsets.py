@@ -1,9 +1,8 @@
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets
 from core.throttling import APIEndpointRateThrottle
 
 class ThrottledViewSet(viewsets.ModelViewSet):
     """
-    Base ViewSet that includes rate limiting and JWT authentication
+    Base ViewSet that includes rate limiting
     """
-    permission_classes = [permissions.IsAuthenticated]
     throttle_classes = [APIEndpointRateThrottle]

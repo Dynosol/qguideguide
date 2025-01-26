@@ -3,8 +3,6 @@ from django.conf import settings
 from django.core.cache import cache
 import time
 import logging
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.urls import resolve
 import secrets
 
