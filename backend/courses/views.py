@@ -11,6 +11,8 @@ from core.cache_utils import cache, get_cached_data
 from django.db import connection
 import hashlib
 import json
+from django.core.serializers.json import DjangoJSONEncoder
+import zlib
 
 REQUEST_LIMIT = None
 
@@ -39,7 +41,24 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
 
     def list(self, request, *args, **kwargs):
         try:
-            data = get_cached_data('courses_data')
+            # Try to get compressed data from cache
+            compressed_data = cache.get('compressed_courses_data')
+            if compressed_data:
+                # Decompress and return
+                json_data = zlib.decompress(compressed_data).decode('utf-8')
+                return Response(json.loads(json_data))
+
+            # If not in cache, get from database
+            connection.ensure_connection()
+            queryset = self.get_queryset()
+            serializer = self.get_serializer(queryset, many=True)
+            data = serializer.data
+
+            # Compress and cache the data
+            json_data = json.dumps(data, cls=DjangoJSONEncoder)
+            compressed = zlib.compress(json_data.encode('utf-8'))
+            cache.set('compressed_courses_data', compressed, timeout=86400)  # 24 hours
+
             return Response(data)
         except Exception as e:
             connection.ensure_connection()

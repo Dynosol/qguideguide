@@ -5,6 +5,9 @@ from django.db import transaction
 from redis.exceptions import ConnectionError, TimeoutError
 from functools import wraps
 import backoff
+import zlib
+import json
+from django.core.serializers.json import DjangoJSONEncoder
 
 logger = logging.getLogger(__name__)
 
@@ -118,40 +121,35 @@ def warm_cache():
         start_time = time.time()
         cache.set('cache_warming_in_progress', True, LOCK_TIMEOUT)
 
-        success = True
         with transaction.atomic():
             try:
-                def cache_in_chunks(model, serializer_class, cache_key, chunk_size=100):
-                    total = model.objects.count()
-                    chunks = (total // chunk_size) + (1 if total % chunk_size else 0)
-                    
+                def cache_with_compression(model, serializer_class, cache_key, chunk_size=100):
                     all_data = []
-                    for i in range(chunks):
-                        offset = i * chunk_size
-                        chunk = model.objects.select_related().all()[offset:offset + chunk_size]
-                        chunk_data = serializer_class(chunk, many=True).data
-                        all_data.extend(chunk_data)
-                        logger.info(f"Cached chunk {i+1}/{chunks} for {cache_key}")
-                    
-                    set_cache_data(cache_key, all_data)
+                    for chunk in model.objects.iterator(chunk_size=chunk_size):
+                        chunk_data = serializer_class(chunk).data
+                        all_data.append(chunk_data)
+                        
+                    # Compress the data before caching
+                    json_data = json.dumps(all_data, cls=DjangoJSONEncoder)
+                    compressed = zlib.compress(json_data.encode('utf-8'))
+                    set_cache_data(f'compressed_{cache_key}', compressed)
+                    logger.info(f"Cached and compressed {len(all_data)} records for {cache_key}")
 
-                # Cache data using lazy loading
-                cache_in_chunks(lazy.Course, lazy.CourseSerializer, 'courses_data', chunk_size=50)
-                cache_in_chunks(lazy.Professor, lazy.ProfessorSerializer, 'professors_data', chunk_size=100)
+                # Cache data with compression
+                cache_with_compression(lazy.Course, lazy.CourseSerializer, 'courses_data', chunk_size=1000)
+                cache_with_compression(lazy.Professor, lazy.ProfessorSerializer, 'professors_data', chunk_size=1000)
                 
                 departments = lazy.Department.objects.select_related().all()
                 departments_data = lazy.DepartmentSerializer(departments, many=True).data
                 set_cache_data('departments_data', departments_data)
 
             except Exception as e:
-                success = False
                 logger.error(f"Error during cache warming: {str(e)}")
                 raise
 
-        if success:
-            set_cache_data('cache_warmed', True)
-            set_cache_data('last_cache_update', time.time())
-            logger.info(f"Cache warming completed in {time.time() - start_time:.2f} seconds")
+        set_cache_data('cache_warmed', True)
+        set_cache_data('last_cache_update', time.time())
+        logger.info(f"Cache warming completed in {time.time() - start_time:.2f} seconds")
         
     except Exception as e:
         logger.error(f"Error during cache warming: {str(e)}")
