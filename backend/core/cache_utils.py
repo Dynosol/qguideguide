@@ -124,38 +124,24 @@ def warm_cache():
         with transaction.atomic():
             try:
                 def cache_with_compression(model, serializer_class, cache_key, chunk_size=100):
-                    # Process in smaller chunks to avoid memory issues
-                    json_encoder = DjangoJSONEncoder()
-                    compressed_chunks = []
-                    
+                    all_data = []
                     for chunk in model.objects.iterator(chunk_size=chunk_size):
                         chunk_data = serializer_class(chunk).data
-                        json_data = json_encoder.encode(chunk_data)
-                        compressed = zlib.compress(json_data.encode('utf-8'))
-                        compressed_chunks.append(compressed)
+                        all_data.append(chunk_data)
                         
-                        # Clear memory after each chunk
-                        del chunk_data
-                        del json_data
-                    
-                    # Store compressed chunks separately
-                    for i, chunk in enumerate(compressed_chunks):
-                        set_cache_data(f'{cache_key}_chunk_{i}', chunk)
-                    set_cache_data(f'{cache_key}_chunk_count', len(compressed_chunks))
-                    
-                    # Clear memory
-                    del compressed_chunks
+                    # Compress the data before caching
+                    json_data = json.dumps(all_data, cls=DjangoJSONEncoder)
+                    compressed = zlib.compress(json_data.encode('utf-8'))
+                    set_cache_data(f'compressed_{cache_key}', compressed)
+                    logger.info(f"Cached and compressed {len(all_data)} records for {cache_key}")
 
-                # Cache data with smaller chunks
-                cache_with_compression(lazy.Course, lazy.CourseSerializer, 'courses_data', chunk_size=50)
-                cache_with_compression(lazy.Professor, lazy.ProfessorSerializer, 'professors_data', chunk_size=50)
+                # Cache data with compression
+                cache_with_compression(lazy.Course, lazy.CourseSerializer, 'courses_data', chunk_size=1000)
+                cache_with_compression(lazy.Professor, lazy.ProfessorSerializer, 'professors_data', chunk_size=1000)
                 
-                # Handle departments separately as they're smaller
-                departments = lazy.Department.objects.all()
+                departments = lazy.Department.objects.select_related().all()
                 departments_data = lazy.DepartmentSerializer(departments, many=True).data
-                json_data = json.dumps(departments_data, cls=DjangoJSONEncoder)
-                compressed = zlib.compress(json_data.encode('utf-8'))
-                set_cache_data('departments_data', compressed)
+                set_cache_data('departments_data', departments_data)
 
             except Exception as e:
                 logger.error(f"Error during cache warming: {str(e)}")
