@@ -179,7 +179,7 @@ else:
     CSP_IMG_SRC = ("'self'", "data:", "https:")
     CSP_CONNECT_SRC = ("'self'", "https://api.qguideguide.com")
 
-# Cache settings with better error handling
+# Cache settings with better error handling and memory management
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -187,13 +187,19 @@ CACHES = {
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "CONNECTION_POOL_KWARGS": {
-                "max_connections": 50,
+                "max_connections": 20,  # Reduced from 50
                 "retry_on_timeout": True,
             },
             "SOCKET_CONNECT_TIMEOUT": 5,
             "SOCKET_TIMEOUT": 5,
             "RETRY_ON_TIMEOUT": True,
-            "MAX_CONNECTIONS": 50,
+            "MAX_CONNECTIONS": 20,  # Reduced from 50
+            "REDIS_CLIENT_KWARGS": {
+                "maxmemory": "450mb",  # Set max memory limit
+                "maxmemory-policy": "allkeys-lru",  # Evict least recently used keys when memory is full
+            },
+            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",  # Enable compression
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",  # Use JSON serializer
         }
     }
 }

@@ -124,16 +124,27 @@ def warm_cache():
         with transaction.atomic():
             try:
                 def cache_with_compression(model, serializer_class, cache_key, chunk_size=100):
-                    all_data = []
-                    for chunk in model.objects.iterator(chunk_size=chunk_size):
-                        chunk_data = serializer_class(chunk).data
-                        all_data.append(chunk_data)
-                        
-                    # Compress the data before caching
-                    json_data = json.dumps(all_data, cls=DjangoJSONEncoder)
-                    compressed = zlib.compress(json_data.encode('utf-8'))
-                    set_cache_data(f'compressed_{cache_key}', compressed)
-                    logger.info(f"Cached and compressed {len(all_data)} records for {cache_key}")
+                    """Cache data in chunks to prevent memory overload"""
+                    total_count = 0
+                    try:
+                        for chunk_index, chunk in enumerate(model.objects.iterator(chunk_size=chunk_size)):
+                            chunk_data = serializer_class(chunk).data
+                            # Cache each chunk separately with compression
+                            json_data = json.dumps(chunk_data, cls=DjangoJSONEncoder)
+                            compressed = zlib.compress(json_data.encode('utf-8'))
+                            set_cache_data(f'{cache_key}_chunk_{chunk_index}', compressed)
+                            total_count += 1
+                            
+                        # Store metadata about the chunks
+                        set_cache_data(f'{cache_key}_metadata', {
+                            'total_chunks': total_count,
+                            'chunk_size': chunk_size,
+                            'last_updated': time.time()
+                        })
+                        logger.info(f"Cached {total_count} chunks for {cache_key}")
+                    except Exception as e:
+                        logger.error(f"Error caching chunks for {cache_key}: {str(e)}")
+                        raise
 
                 # Cache data with compression
                 cache_with_compression(lazy.Course, lazy.CourseSerializer, 'courses_data', chunk_size=1000)
