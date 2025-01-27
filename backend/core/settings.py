@@ -193,13 +193,7 @@ CACHES = {
             "SOCKET_CONNECT_TIMEOUT": 5,
             "SOCKET_TIMEOUT": 5,
             "RETRY_ON_TIMEOUT": True,
-            "MAX_CONNECTIONS": 20,  # Reduced from 50
-            "REDIS_CLIENT_KWARGS": {
-                "maxmemory": "450mb",  # Set max memory limit
-                "maxmemory-policy": "allkeys-lru",  # Evict least recently used keys when memory is full
-            },
-            "COMPRESSOR": "django_redis.compressors.zlib.ZlibCompressor",  # Enable compression
-            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",  # Use JSON serializer
+            "MAX_CONNECTIONS": 50,
         }
     }
 }
