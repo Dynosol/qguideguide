@@ -39,7 +39,13 @@ api.interceptors.response.use(response => {
 });
 
 // Export API functions
-export const fetchCourses = () => api.get('/api/courses/');
+export const fetchCourses = (page = 1, pageSize = 100) => 
+  api.get('/api/courses/', {
+    params: {
+      page,
+      page_size: pageSize
+    }
+  });
 export const fetchProfessors = () => api.get('/api/professors/');
 export const fetchDepartments = () => api.get('/api/departments/');
 
