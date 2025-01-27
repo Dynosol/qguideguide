@@ -24,11 +24,6 @@ def generate_etag(data):
     data_str = json.dumps(data, sort_keys=True)
     return hashlib.md5(data_str.encode()).hexdigest()
 
-class CoursePageNumberPagination(PageNumberPagination):
-    page_size = 100
-    page_size_query_param = 'page_size'
-    max_page_size = 1000
-
 class CourseViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Course.objects.all().order_by('title')
     serializer_class = CourseSerializer
