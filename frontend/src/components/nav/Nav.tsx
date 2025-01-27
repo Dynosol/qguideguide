@@ -146,7 +146,7 @@ const Navbar: React.FC = () => {
               }
               onClick={() => setIsMenuOpen(false)}
             >
-              Course Search Tool
+              Course Compare Tool
             </NavLink>
           </li>
           <li className="navbar-item">
