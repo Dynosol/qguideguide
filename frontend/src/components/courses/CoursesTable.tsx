@@ -27,11 +27,6 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
   const [searchValue, setSearchValue] = useState('');
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnPinning, setColumnPinning] = useState<{ left?: string[] }>({ left: ['title'] });
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: 100,
-  });
-  const [rowCount, setRowCount] = useState(0);
 
   const tableTheme = useMemo(
     () =>
@@ -57,20 +52,34 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
     [mode]
   );
 
-  // Load data with pagination
+  // Load all data at once
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        // Calculate page number (1-based for backend)
-        const page = pagination.pageIndex + 1;
-        const pageSize = pagination.pageSize;
-
-        const response = await fetchCourses(page, pageSize);
-        const { results, count } = response.data;
+        // Try to get data from IndexedDB first
+        const cachedData = await db.courses.toArray();
         
-        setData(results);
-        setRowCount(count);
+        if (cachedData && cachedData.length > 0) {
+          console.log('Loading data from cache...');
+          setData(cachedData);
+          setIsLoading(false);
+        }
+
+        // Always fetch fresh data from API
+        console.log('Fetching fresh data...');
+        const response = await fetchCourses();
+        const freshData = response.data;
+
+        // Update state with fresh data
+        setData(freshData);
+        
+        // Update cache with fresh data
+        await db.transaction('rw', db.courses, async () => {
+          await db.courses.clear(); // Clear old cache
+          await db.courses.bulkAdd(freshData);
+        });
+        
       } catch (error) {
         console.error('Error loading courses:', error);
       } finally {
@@ -79,7 +88,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
     };
 
     loadData();
-  }, [pagination.pageIndex, pagination.pageSize, position]);
+  }, [position]); // Reload when position changes
 
   // Debounce search input
   useEffect(() => {
@@ -117,13 +126,9 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
       isLoading,
       globalFilter,
       columnPinning,
-      pagination,
     },
     enableGlobalFilter: true,
     enableSorting: true,
-    manualPagination: true,
-    rowCount,
-    onPaginationChange: setPagination,
     positionGlobalFilter: 'left',
     muiSearchTextFieldProps: {
       placeholder: 'Search all fields...',
@@ -137,7 +142,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
       setGlobalFilter(newValue);
       setSearchValue(newValue);
     },
-    enablePagination: true,
+    enablePagination: false,
     enableRowVirtualization: true,
     virtualizationOptions: {
       overscan: 25,
@@ -213,7 +218,7 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
     },
     renderBottomToolbarCustomActions: () => (
       <div style={{ padding: '8px' }}>
-        {isLoading ? 'Loading courses... this might take a while...' : `Showing ${pagination.pageIndex * pagination.pageSize + 1} - ${Math.min((pagination.pageIndex + 1) * pagination.pageSize, rowCount)} of ${rowCount} courses`}
+        {isLoading ? 'Loading courses...' : "All courses loaded from Fall '19 - Spring '23"}
       </div>
     ),
   });
