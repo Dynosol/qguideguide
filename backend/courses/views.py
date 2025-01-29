@@ -35,6 +35,13 @@ class CourseViewSet(viewsets.ReadOnlyModelViewSet):
         return super().get_queryset()
 
     def list(self, request, *args, **kwargs):
+        # If it's a HEAD request, return just headers without body
+        if request.method == 'HEAD':
+            return Response(headers={
+                'X-Total-Count': Course.objects.count(),
+                'Content-Type': 'application/json',
+            })
+
         try:
             # Try to get compressed data from cache
             compressed_data = cache.get('compressed_courses_data')
