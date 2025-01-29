@@ -12,8 +12,8 @@ import { createTheme, ThemeProvider as MuiThemeProvider } from '@mui/material/st
 import { colorPalettes } from '../../utils/colors';
 import { getCoursesColumns } from './Columns'; // Import the columns
 import { fetchCourses } from '../../utils/api';
-import axios from 'axios'; // Import axios
-import config from '../../config';
+// import axios from 'axios'; // Import axios
+// import config from '../../config';
 
 const USER_KEYPRESS_SEARCHDELAY = 100; // in milliseconds
 interface CoursesTableProps {
@@ -27,6 +27,8 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
   const [searchValue, setSearchValue] = useState('');
   const [globalFilter, setGlobalFilter] = useState('');
   const [columnPinning, setColumnPinning] = useState<{ left?: string[] }>({ left: ['title'] });
+  const [departments, setDepartments] = useState<string[]>([]);
+  const [terms, setTerms] = useState<string[]>([]);
 
   const tableTheme = useMemo(
     () =>
@@ -90,6 +92,20 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
     loadData();
   }, [position]); // Reload when position changes
 
+  // Extract unique departments from data
+  useEffect(() => {
+    const uniqueDepartments = data.map(course => course.department);
+    const uniqueDeptSet = new Set(uniqueDepartments);
+    setDepartments(Array.from(uniqueDeptSet));
+  }, [data]);
+
+  useEffect(() => {
+    const uniqueTerms = data.map(course => course.term);
+    const uniqueTermSet = new Set(uniqueTerms);
+    setTerms(Array.from(uniqueTermSet));
+  }, [data]);
+
+
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -115,8 +131,8 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
 
   // Import columns using the helper function
   const columns = useMemo<MRT_ColumnDef<Course>[]>(
-    () => getCoursesColumns(mode, position),
-    [mode, position]
+    () => getCoursesColumns(mode, position, departments, terms),
+    [mode, position, departments, terms]
   );
 
   const table = useMaterialReactTable({
@@ -217,8 +233,13 @@ const CoursesTable: React.FC<CoursesTableProps> = ({ position }) => {
       },
     },
     renderBottomToolbarCustomActions: () => (
-      <div style={{ padding: '8px' }}>
-        {isLoading ? 'Loading courses...' : "All courses loaded from Fall '19 - Spring '23"}
+      <div style={{ padding: '8px', display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+        <div>
+          {isLoading ? 'Loading courses...' : "Courses loaded from Fall '19 - Spring '23"}
+        </div>
+        <div>
+          {isLoading ? '' : `Loaded ${data.length} historical courses`}
+        </div>
       </div>
     ),
   });

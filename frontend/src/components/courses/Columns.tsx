@@ -57,6 +57,8 @@ const ratingDefinitions: { key: keyof Course; header: string, minSize: number }[
 export const getCoursesColumns = (
   mode: ThemeMode,
   position: string,
+  departments: string[],
+  terms: string[],
   ): MRT_ColumnDef<Course>[] => {
   // THIS IS FROM THE DROPDOWN AND MODIFIES WHAT THE COLUMNS ARE FILTERED BY
   const getAccessorSuffix = (position: string) => {
@@ -86,6 +88,7 @@ export const getCoursesColumns = (
       accessorKey: 'department',
       header: 'Department',
       filterVariant: 'multi-select',
+      filterSelectOptions: departments,
       filterFn: (row, id, filterValue: string[]) => {
         if (!filterValue?.length) return true;
         const rowValue = row.getValue<string>(id);
@@ -102,6 +105,7 @@ export const getCoursesColumns = (
       accessorKey: 'term',
       header: 'Term',
       minSize: 100,
+      filterSelectOptions: terms,
       filterVariant: 'multi-select',
       filterFn: (row, id, filterValue: string[]) => {
         if (!filterValue?.length) return true;
