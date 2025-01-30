@@ -1,5 +1,7 @@
 Now available at [qguideguide.com](url) although I'm using free tiers for everything so you will most likely encounter an egregious cold start. Django for backend api, Vite + React for frontend, Redis for caching, and Neon for the postgresql.
 
+Unique visitor count: ~500
+
 ## Introduction
 - This is QGuideGuide, a guide to the QGuide, which I made because I (like many of my friends, and as I imagine, you as well) was incredibly frustrated at how bad the my.harvard viewer for courses is, how slow it is, how often my.harvard is down, how hard QGuide is to navigate, etc. etc. I hope this helps you in your future course-selecting endeavors!
 
